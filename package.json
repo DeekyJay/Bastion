@@ -12,6 +12,7 @@
     "test:boot": "node -r ./utils/globals.js tests/boot.js",
     "test": "yarn run test:lint && yarn run test:modules && yarn run test:boot",
     "start": "node -r ./utils/globals.js index.js",
+    "debug": "node --nolazy --inspect-brk=9229 -r ./utils/globals.js bastion.js",
     "start:noshard": "node -r ./utils/globals.js bastion.js"
   },
   "repository": {

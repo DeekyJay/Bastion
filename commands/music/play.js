@@ -10,19 +10,9 @@ const getSongInfo = util.promisify(youtubeDL.getInfo);
 
 exports.exec = async (Bastion, message, args) => {
   try {
-    if (!message.guild.music.enabled) {
-      if (Bastion.user.id === '267035345537728512') {
-        return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabledPublic'), message.channel);
-      }
-      return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabled'), message.channel);
-    }
+    if (message.guild.music.textChannelID && message.channel.id !== message.guild.music.textChannelID) return Bastion.log.info('Music channels have been set, so music commands will only work in the music text channel.');
 
-    if (message.guild.music.textChannelID && message.guild.music.textChannelID !== message.channel.id) {
-      return Bastion.log.info('Music channels have been set, so music commands will only work in the Music Text Channel.');
-    }
-
-
-    if (!args.song && !args.playlist) {
+    if (!args.song && !args.ytpl && !args.playlist) {
       /**
        * The command was ran with invalid parameters.
        * @fires commandUsage
@@ -31,43 +21,22 @@ exports.exec = async (Bastion, message, args) => {
     }
 
 
-    let voiceConnection = message.guild.voiceConnection, voiceChannel, textChannel, vcStats;
+    let authorId, voiceChannel, textChannel, vcStats;
+    authorId = message.author.id;
 
-    if (voiceConnection) {
-      voiceChannel = voiceConnection.channel;
-      textChannel = message.guild.music.textChannel || message.channel;
-
-      vcStats = Bastion.i18n.error(message.guild.language, 'userNoSameVC', message.author.tag);
+    let channels = Bastion.channels.filter(channel => channel.type === 'voice' && channel.members.size);
+    if (!channels) {
+      return Bastion.emit('error', 'No Voice Channel', 'There is nobody in a voice channel.', message.channel);
     }
-    else {
-      if (message.guild.music.textChannelID && message.guild.music.voiceChannelID) {
-        voiceChannel = message.guild.channels.filter(c => c.type === 'voice').get(message.guild.music.voiceChannelID);
-        textChannel = message.guild.channels.filter(c => c.type === 'text').get(message.guild.music.textChannelID);
+    let channel = channels.find(channel => channel.members.find(member => member.id === authorId));
 
-        if (!voiceChannel || !textChannel) {
-          return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'invalidMusicChannel'), message.channel);
-        }
-
-        vcStats = Bastion.i18n.error(message.guild.language, 'userNoMusicChannel', message.author.tag, voiceChannel.name);
-      }
-      else if (Bastion.credentials.ownerId.includes(message.author.id) || message.member.roles.has(message.guild.music.masterRoleID)) {
-        voiceChannel = message.member.voiceChannel;
-        textChannel = message.channel;
-
-        if (!voiceChannel) {
-          return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'userNoVC', message.author.tag), message.channel);
-        }
-      }
-      else {
-        return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicChannelNotFound'), message.channel);
-      }
-
-      if (!voiceChannel.joinable) {
-        return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'noPermission', 'join', voiceChannel.name), message.channel);
-      }
-
-      voiceConnection = await voiceChannel.join();
+    if (!channel) {
+      return Bastion.emit('error', 'No Voice Channel', 'You are not in a voice channel.', message.channel);
     }
+
+    voiceChannel = channel;
+    textChannel = message.channel;
+    vcStats = Bastion.strings.error(message.guild.language, 'userNoSameVC', true, message.author.tag);
 
 
     if (!voiceChannel.speakable) {
