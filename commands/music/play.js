@@ -20,24 +20,28 @@ exports.exec = async (Bastion, message, args) => {
       return Bastion.emit('commandUsage', message, this.help);
     }
 
+    let voiceConnection = message.guild.voiceConnection;
+    let voiceChannel, textChannel, vcStats;
+    let authorId = message.author.id;
 
-    let authorId, voiceChannel, textChannel, vcStats;
-    authorId = message.author.id;
+    if (voiceConnection) {
+      vcStats = Bastion.strings.error(message.guild.language, 'userNoSameVC', true, message.author.tag);
+    } else {
+      let channels = Bastion.channels.filter(channel => channel.type === 'voice' && channel.members.size);
+      if (!channels) {
+        return Bastion.emit('error', 'No Voice Channel', 'There is nobody in a voice channel.', message.channel);
+      }
+      let channel = channels.find(channel => channel.members.find(member => member.id === authorId));
 
-    let channels = Bastion.channels.filter(channel => channel.type === 'voice' && channel.members.size);
-    if (!channels) {
-      return Bastion.emit('error', 'No Voice Channel', 'There is nobody in a voice channel.', message.channel);
+      if (!channel) {
+        return Bastion.emit('error', 'No Voice Channel', 'You are not in a voice channel.', message.channel);
+      }
+
+      voiceChannel = channel;
+      textChannel = message.channel;
+
+      voiceConnection = await voiceChannel.join();
     }
-    let channel = channels.find(channel => channel.members.find(member => member.id === authorId));
-
-    if (!channel) {
-      return Bastion.emit('error', 'No Voice Channel', 'You are not in a voice channel.', message.channel);
-    }
-
-    voiceChannel = channel;
-    textChannel = message.channel;
-    vcStats = Bastion.strings.error(message.guild.language, 'userNoSameVC', true, message.author.tag);
-
 
     if (!voiceChannel.speakable) {
       return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'noPermission', 'speak', `in ${voiceChannel.name}`), message.channel);
