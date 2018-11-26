@@ -1,6 +1,6 @@
 /**
- * @file kiss command
- * @author Sankarsan Kampa (a.k.a k3rn31p4nic)
+ * @file inspiro command
+ * @author Derek Jensen (Deek#0001)
  * @license MIT
  */
 
