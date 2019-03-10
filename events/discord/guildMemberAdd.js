@@ -44,60 +44,104 @@ module.exports = async member => {
     }
 
     if (guildModel.dataValues.greet) {
-      let greetMessage;
-      if (guildModel.dataValues.greetMessage) {
-        greetMessage = await member.client.utils.decompressString(guildModel.dataValues.greetMessage);
+      let greetMessage = guildModel.dataValues.greetMessage && Object.keys(guildModel.dataValues.greetMessage).length ? guildModel.dataValues.greetMessage : { text: greetMessages.getRandom() };
+
+      greetMessage = JSON.stringify(greetMessage);
+
+      greetMessage = member.client.methods.replaceMemberVariables(greetMessage, member);
+
+      let text, embed;
+      greetMessage = JSON.parse(greetMessage);
+
+      text = greetMessage.text ? greetMessage.text : null;
+      delete greetMessage.text;
+      embed = Object.keys(greetMessage).length ? greetMessage : null;
+
+      if (embed) {
+        embed.footer = {};
+        embed.footer.text = 'Greetings!';
       }
-      else {
-        greetMessage = greetMessages[Math.floor(Math.random() * greetMessages.length)];
-      }
-      greetMessage = greetMessage.replace(/\$user/ig, `<@${member.id}>`);
-      greetMessage = greetMessage.replace(/\$server/ig, member.guild.name);
-      greetMessage = greetMessage.replace(/\$username/ig, member.displayName);
-      greetMessage = greetMessage.replace(/\$prefix/ig, member.guild.prefix ? member.guild.prefix[0] : member.client.configurations.prefix[0]);
 
       let greetChannel = member.guild.channels.get(guildModel.dataValues.greet);
+
       if (greetChannel) {
-        greetChannel.send({
+        let greetings;
+
+        if (text && embed) {
+          greetings = await greetChannel.send(text, { embed: embed }).catch(e => {
+            member.client.log.error(e);
+          });
+        }
+        else if (text) {
+          greetings = await greetChannel.send({
+            embed: {
+              color: member.client.colors.BLUE,
+              description: text,
+              footer: {
+                text: 'Greetings!'
+              }
+            }
+          }).catch(e => {
+            member.client.log.error(e);
+          });
+        }
+        else if (embed) {
+          greetings = await greetChannel.send({ embed: embed }).catch(e => {
+            member.client.log.error(e);
+          });
+        }
+
+        if (greetings && guildModel.dataValues.greetTimeout > 0) {
+          greetings.delete(1000 * parseInt(guildModel.dataValues.greetTimeout)).catch(e => {
+            member.client.log.error(e);
+          });
+        }
+      }
+    }
+
+    if (guildModel.dataValues.greetPrivate) {
+      let greetPrivateMessage = guildModel.dataValues.greetPrivateMessage && Object.keys(guildModel.dataValues.greetPrivateMessage).length ? guildModel.dataValues.greetPrivateMessage : { text: greetMessages.getRandom() };
+
+      greetPrivateMessage = JSON.stringify(greetPrivateMessage);
+
+      greetPrivateMessage = member.client.methods.replaceMemberVariables(greetPrivateMessage, member);
+
+      let text, embed;
+      greetPrivateMessage = JSON.parse(greetPrivateMessage);
+
+      text = greetPrivateMessage.text ? greetPrivateMessage.text : null;
+      delete greetPrivateMessage.text;
+      embed = Object.keys(greetPrivateMessage).length ? greetPrivateMessage : null;
+
+      if (embed) {
+        embed.footer = {};
+        embed.footer.text = 'Greetings!';
+      }
+
+
+      if (text && embed) {
+        await member.send(text, { embed: embed }).catch(e => {
+          member.client.log.error(e);
+        });
+      }
+      else if (text) {
+        await member.send({
           embed: {
             color: member.client.colors.BLUE,
-            title: `Hello ${member.displayName}`,
-            description: greetMessage
-          }
-        }).then(m => {
-          if (guildModel.dataValues.greetTimeout > 0) {
-            m.delete(1000 * parseInt(guildModel.dataValues.greetTimeout)).catch(e => {
-              member.client.log.error(e);
-            });
+            description: text,
+            footer: {
+              text: 'Greetings!'
+            }
           }
         }).catch(e => {
           member.client.log.error(e);
         });
       }
-    }
-
-    if (guildModel.dataValues.greetPrivate) {
-      let greetPrivateMessage;
-      if (guildModel.dataValues.greetPrivateMessage) {
-        greetPrivateMessage = await member.client.utils.decompressString(guildModel.dataValues.greetPrivateMessage);
+      else if (embed) {
+        await member.send({ embed: embed }).catch(e => {
+          member.client.log.error(e);
+        });
       }
-      else {
-        greetPrivateMessage = greetMessages[Math.floor(Math.random() * greetMessages.length)];
-      }
-      greetPrivateMessage = greetPrivateMessage.replace(/\$user/ig, `<@${member.id}>`);
-      greetPrivateMessage = greetPrivateMessage.replace(/\$server/ig, member.guild.name);
-      greetPrivateMessage = greetPrivateMessage.replace(/\$username/ig, member.displayName);
-      greetPrivateMessage = greetPrivateMessage.replace(/\$prefix/ig, member.guild.prefix ? member.guild.prefix[0] : member.client.configurations.prefix[0]);
-
-      member.send({
-        embed: {
-          color: member.client.colors.BLUE,
-          title: `Hello ${member.displayName}`,
-          description: greetPrivateMessage
-        }
-      }).catch(e => {
-        member.client.log.error(e);
-      });
     }
 
     let autoAssignableRoles = [];

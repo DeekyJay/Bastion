@@ -7,6 +7,7 @@
 const Tesseract = xrequire('tesseract');
 const BASTION = new Tesseract.Client({
   settingsDirectory: './settings',
+  monitorsDirectory: './monitors',
   disabledEvents: [
     'USER_NOTE_UPDATE',
     'TYPING_START',
@@ -23,9 +24,12 @@ BASTION.Constants = Tesseract.Constants;
 BASTION.colors = Tesseract.Constants.Colors;
 BASTION.permissions = Tesseract.Permissions.FLAGS;
 
-// xrequire('./prototypes/Array.prototype');
-xrequire('./prototypes/String.prototype');
 xrequire('./prototypes/Number.prototype');
+xrequire('./prototypes/Number');
+xrequire('./prototypes/String.prototype');
+xrequire('./prototypes/Array.prototype');
+xrequire('./prototypes/Array');
+xrequire('./prototypes/Object');
 
 const WebhookHandler = xrequire('./handlers/webhookHandler.js');
 BASTION.webhook = new WebhookHandler(BASTION.credentials.webhooks);

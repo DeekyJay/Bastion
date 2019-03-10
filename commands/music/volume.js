@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 
-exports.exec = (Bastion, message, args) => {
+exports.exec = async (Bastion, message, args) => {
   if (!message.guild.music.enabled) {
     if (Bastion.user.id === '267035345537728512') {
       return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabledPublic'), message.channel);
@@ -21,24 +21,17 @@ exports.exec = (Bastion, message, args) => {
   }
 
   let color = Bastion.colors.GREEN;
-  if (args[0] === '+') {
-    message.guild.voiceConnection.dispatcher.setVolume((message.guild.voiceConnection.dispatcher.volume * 50 + 2) / 50);
-  }
-  else if (args[0] === '-') {
-    message.guild.voiceConnection.dispatcher.setVolume((message.guild.voiceConnection.dispatcher.volume * 50 - 2) / 50);
-  }
-  else if (/^\d+$/.test(args[0])) {
-    args = args[0] > 0 && args[0] < 100 ? args[0] : 100;
-    message.guild.voiceConnection.dispatcher.setVolume(args / 50);
+  if (args.value) {
+    message.guild.voiceConnection.dispatcher.setVolume(args.value / 50);
   }
   else {
     color = Bastion.colors.BLUE;
   }
 
-  message.guild.music.textChannel.send({
+  await message.guild.music.textChannel.send({
     embed: {
       color: color,
-      description: `Volume: ${Math.round(message.guild.voiceConnection.dispatcher.volume * 50)}%`
+      description: `Volume: ${message.guild.voiceConnection.dispatcher.volume * 50}%`
     }
   }).catch(e => {
     Bastion.log.error(e);
@@ -48,15 +41,18 @@ exports.exec = (Bastion, message, args) => {
 exports.config = {
   aliases: [],
   enabled: true,
-  musicMasterOnly: true
+  musicMasterOnly: true,
+  argsDefinitions: [
+    { name: 'value', type: Number, defaultOption: true }
+  ]
 };
 
 exports.help = {
   name: 'volume',
-  description: 'Changes/sets the volume of current playback in your Discord.',
+  description: 'Changes the volume of current playback in your server.',
   botPermission: '',
   userTextPermission: '',
   userVoicePermission: '',
-  usage: 'volume < + | - | amount >',
-  example: [ 'volume +', 'volume -', 'volume 25' ]
+  usage: 'volume <VALUE>',
+  example: [ 'volume 25' ]
 };

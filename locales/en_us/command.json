@@ -38,11 +38,20 @@
   "announcementChannel": {
     "description": "Adds/removes an announcement channel. You will receive announcements made by the bot owner in this channel."
   },
+  "apexLegends": {
+    "description": "Get stats of any Apex Legends player."
+  },
   "apod": {
     "description": "Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer."
   },
   "ark": {
     "description": "Get stats of any ARK: Survival Evolved game server."
+  },
+  "autoDisconnect": {
+    "description": "Toggles auto disconnect from voice channel. If enabled, Bastion will automatically leave the voice channel to save bandwidth when no one else is connected to it."
+  },
+  "autoPlay": {
+    "description": "Toggles auto playing of music."
   },
   "avatar": {
     "description": "Shows avatar of a specified user of your Discord server."
@@ -78,7 +87,7 @@
     "description": "Searches for the details of a book"
   },
   "buy": {
-    "description": "Buy items from the server's shop."
+    "description": "Buy items from the server's shop. You can also gift it to some other member while buying."
   },
   "buyRole": {
     "description": "Buy role from the server's Role Store."
@@ -159,7 +168,7 @@
     "description": "Search for a command with the given text."
   },
   "commands": {
-    "description": "Direct Messages you with a list of all the commands, or the commands in specific modules."
+    "description": "Shows the list of command categories. And if a category is specified, Bastion will show a list of commands in that category."
   },
   "contributors": {
     "description": "Shows the list of people who contribute to the development of The Bastion Bot Project on [GitHub](%github.org%)."
@@ -248,6 +257,9 @@
   "eval": {
     "description": "Evaluates JavaScript code."
   },
+  "exclusiveRoles": {
+    "description": "Add/remove the specified roles as exclusive roles. If no argument is passed, it will show the current list of exclusive roles."
+  },
   "exec": {
     "description": "Executes a command in the Terminal (Linux/macOS) or Command Prompt (Windows) and shows the output. Note that it will terminate the command if it runs for more than 1 minute."
   },
@@ -265,6 +277,9 @@
   },
   "fidgetSpinner": {
     "description": "Spins a fidget spinner for you and shows for how long it was spinning."
+  },
+  "filterEmojis": {
+    "description": "Toggles automatic deleting of messages that are emoji spams. Messages with more than 50% of its content with emojis are considered as emoji spams."
   },
   "filterInvite": {
     "description": "Toggles automatic deleting of Discord server invites posted in the server."
@@ -309,13 +324,13 @@
     "description": "Searches animated GIFs on the web and sends a random GIF based on the given query."
   },
   "give": {
-    "description": "Give the specified amount of %currency.name_plural% from your account to the specified user. If you are the bot owner, you can give any amount of %currency.name_plural%."
+    "description": "Give the specified amount of %currency.name_plural% from your account to the specified user. If you are the server owner, you can give any amount of %currency.name_plural%."
   },
   "giveXP": {
     "description": "Give the specified amount of experience points to the specified user and increase their level."
   },
   "giveaway": {
-    "description": "Starts a giveaway event, with the item of your choice, for the given amount of time, a winner is chosen at random after the event is concluded. Event can run for at least 1 hour and at most 12 hours."
+    "description": "Starts a giveaway event, with the item of your choice, for the given amount of time, a winner is chosen at random after the event is concluded. Event can run for at least 1 hour and at most 24 hours."
   },
   "google": {
     "description": "Searches Google, for the specified query, and shows the top results."
@@ -367,9 +382,6 @@
   },
   "ignoreRoles": {
     "description": "Adds or removes roles to/from the ignored roles' list. Bastion doesn't accept any commands from the roles that are being ignored."
-  },
-  "ignoreSlowMode": {
-    "description": "Add/remove channels/roles to/from the slow mode ignored list. Bastion will not enable slow mode in these channels or for these roles."
   },
   "ignoreStarboard": {
     "description": "Add/remove channels/roles to/from the starboard ignored list. Bastion will not log starred messages from these channels or roles."
@@ -438,7 +450,7 @@
     "description": "Lists all the message triggers."
   },
   "listWarns": {
-    "description": "Lists all the warned users of your Discord Server."
+    "description": "Lists all the warned users of your Discord Server. And if a specific user is specified, it'll list all the warnings issued to that user."
   },
   "listWhitelistDomains": {
     "description": "Lists all whitelisted domains for the link filter."
@@ -456,7 +468,7 @@
     "description": "Toggles logging of various events in the server."
   },
   "lyrics": {
-    "description": "Shows the lyrics of the specified song."
+    "description": "Shows the lyrics of the current song being played in the server or any specified song."
   },
   "magic8ball": {
     "description": "Get answers to your polar (yes/no) questions from the Magic 8-Ball."
@@ -474,10 +486,10 @@
     "description": "Mentions any unmentionable role."
   },
   "messageChannel": {
-    "description": "Send a specified message to any specified text channel that Bastion has access to."
+    "description": "Send a message to any specified text channel of your server through Bastion."
   },
-  "messageUser": {
-    "description": "Send a specified message to any specified user that Bastion has access to."
+  "messageMember": {
+    "description": "Send a message to any specified member of your server through Bastion."
   },
   "minecraft": {
     "description": "Get stats of any Minecraft game server."
@@ -495,7 +507,7 @@
     "description": "Searches for the details of a movie."
   },
   "music": {
-    "description": "Toggle music support for a specified server."
+    "description": "Toggle music support for the specified server."
   },
   "musicChannel": {
     "description": "Shows/Removes/Adds a voice channel specified by the ID and a text channel (the channel this command was used in) of you Discord server as default for the music module. Bastion will only accept music commands in that text channel and if anyone asks him to join a voice channel, it will automatically join the specified voice channel."
@@ -581,6 +593,9 @@
   "rank": {
     "description": "Shows the rank of the specified user's account."
   },
+  "reactionAnnouncements": {
+    "description": "Toggles Reaction Announcements in the server. Adding either 📣 or 📢 reaction to a message will send the message to the announcement channel, provided an announcement channel has been set."
+  },
   "reactionPinning": {
     "description": "Toggles Reaction Pinning in the server. If Reaction Pinning is enabled, adding either 📌 or 📍 reaction to a message will pin the message to the channel and removing the reactions will unpin it too."
   },
@@ -589,6 +604,9 @@
   },
   "reason": {
     "description": "Add/Update the reason for a moderation action, which is logged in the moderation log channel. Only the responsible moderator or anyone with administrator permissions can change the reason."
+  },
+  "relayDirectMessages": {
+    "description": "Toggles relaying of direct messages, sent to Bastion, to your inbox."
   },
   "reloadSettings": {
     "description": "Reloads Bastion settings, stored in the `settings` directory, from the cache. When you modify files in the `settings` directory, use this command to reload them without any need to restart."
@@ -636,13 +654,13 @@
     "description": "Adds/removes the channel as the report channel. If it's enabled, when users report server members using the `report` command, the reports will be posted in this channel."
   },
   "reputation": {
-    "description": "Give reputations to other users. You can give reputation only once in 12 hours."
-  },
-  "resetDatabase": {
-    "description": "Resets all the data from a specified table of %bastion%'s database."
+    "description": "Give karma to other users. You can give karma only once in 12 hours."
   },
   "resetModerationLogs": {
     "description": "Resets the moderation log cases back to 1."
+  },
+  "resetProfile": {
+    "description": "Resets all your profile data, inluding all the XP, level, karma and currency that you've earned. If you have Manage Server permission, you can delete everyone's profiles."
   },
   "resume": {
     "description": "Resumes the previously paused playback."
@@ -684,7 +702,7 @@
     "description": "Lists all the roles (with their IDs) of your Discord server."
   },
   "roll": {
-    "description": "Rolls the specified amount of dice and shows you the outcomes."
+    "description": "Rolls the specified amount of dice, with specified modifiers, and shows you the outcomes."
   },
   "rot13": {
     "description": "Sends the message that you had sent, rot13 encoded."
@@ -774,7 +792,7 @@
     "description": "Shows detailed stats and info of the shard the command was used in."
   },
   "ship": {
-    "description": "Combines two or more mentioned users' names."
+    "description": "Combines two or more mentioned user's names."
   },
   "shop": {
     "description": "Lists/Adds/Removes items from your server's shop. Listed items in the shop can be bought by anyone, with %currency.name_plural%, in your server using the `buy` command. When users buy item, the server owner gets 90% of the profit."
@@ -799,9 +817,6 @@
   },
   "slots": {
     "description": "Spins the reels of the slot machine and shows you the result."
-  },
-  "slowMode": {
-    "description": "Enables slow mode in the server. Users are notified when they send messages too quickly. And if users get too spammy, they are temporarily text muted in the channel."
   },
   "smite": {
     "description": "Get stats of any Smite player."
@@ -875,6 +890,12 @@
   "toggleLevelUps": {
     "description": "Toggle level ups in the server. Turning off level ups will prevent users from gaining experience points and leveling up while chatting."
   },
+  "topGames": {
+    "description": "Shows the top most played games in the server."
+  },
+  "topSongs": {
+    "description": "Shows the top most played songs, on Spotify, in the server."
+  },
   "translate": {
     "description": "Translates your message to the specified language."
   },
@@ -899,6 +920,9 @@
   "unMute": {
     "description": "Unmutes a specified user server-wide in your Discord server."
   },
+  "uncoverSneakyLinks": {
+    "description": "Toggle uncovering of sneaky links in the messages sent in the server. If enabled, Bastion will show details of all link that contains redirects to other locations, in every message sent in the server."
+  },
   "unturned": {
     "description": "Get stats of any Unturned game server."
   },
@@ -918,7 +942,7 @@
     "description": "Shows the permissions you have in the server/channel."
   },
   "volume": {
-    "description": "Changes/sets the volume of current playback in your Discord."
+    "description": "Changes the volume of current playback in your server."
   },
   "votingChannels": {
     "description": "Adds/removes the channel as a voting channel. Any messages posted in this channel, by a user, will be available for voting."

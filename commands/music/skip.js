@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 
-exports.exec = (Bastion, message) => {
+exports.exec = async (Bastion, message) => {
   if (!message.guild.music.enabled) {
     if (Bastion.user.id === '267035345537728512') {
       return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabledPublic'), message.channel);
@@ -24,20 +24,21 @@ exports.exec = (Bastion, message) => {
     if (!message.guild.music.skipVotes.includes(message.author.id)) {
       message.guild.music.skipVotes.push(message.author.id);
     }
+
     if (message.guild.music.skipVotes.length >= parseInt((message.guild.voiceConnection.channel.members.size - 1) / 2)) {
-      message.guild.music.textChannel.send({
+      await message.guild.music.dispatcher.end();
+
+      await message.guild.music.textChannel.send({
         embed: {
           color: Bastion.colors.GREEN,
           description: 'Skipping current song.'
         }
-      }).then(() => {
-        message.guild.music.dispatcher.end();
       }).catch(e => {
         Bastion.log.error(e);
       });
     }
     else {
-      message.guild.music.textChannel.send({
+      await message.guild.music.textChannel.send({
         embed: {
           description: `${parseInt((message.guild.voiceConnection.channel.members.size - 1) / 2) - message.guild.music.skipVotes.length} votes required to skip the current song.`
         }
@@ -47,13 +48,13 @@ exports.exec = (Bastion, message) => {
     }
   }
   else {
-    message.guild.music.textChannel.send({
+    await message.guild.music.dispatcher.end();
+
+    await message.guild.music.textChannel.send({
       embed: {
         color: Bastion.colors.GREEN,
         description: 'Skipping current song.'
       }
-    }).then(() => {
-      message.guild.music.dispatcher.end();
     }).catch(e => {
       Bastion.log.error(e);
     });

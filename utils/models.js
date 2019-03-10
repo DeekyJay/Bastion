@@ -20,6 +20,11 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       primaryKey: true
     },
+    relayDirectMessages: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     blacklistedGuilds: {
       type: Sequelize.JSON
     },
@@ -47,6 +52,9 @@ module.exports = (Sequelize, database) => {
     description: {
       type: Sequelize.BLOB
     },
+    icon: {
+      type: Sequelize.STRING(2048)
+    },
     prefix: {
       type: Sequelize.JSON,
       allowNull: false,
@@ -60,7 +68,7 @@ module.exports = (Sequelize, database) => {
       type: Sequelize.STRING
     },
     greetMessage: {
-      type: Sequelize.BLOB
+      type: Sequelize.JSON
     },
     greetTimeout: {
       type: Sequelize.INTEGER,
@@ -73,13 +81,13 @@ module.exports = (Sequelize, database) => {
       defaultValue: false
     },
     greetPrivateMessage: {
-      type: Sequelize.BLOB
+      type: Sequelize.JSON
     },
     farewell: {
       type: Sequelize.STRING
     },
     farewellMessage: {
-      type: Sequelize.BLOB
+      type: Sequelize.JSON
     },
     farewellTimeout: {
       type: Sequelize.INTEGER,
@@ -106,6 +114,16 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       defaultValue: false
     },
+    musicAutoPlay: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    musicAutoDisconnect: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
+    },
     musicTextChannel: {
       type: Sequelize.STRING,
       unique: true
@@ -129,6 +147,16 @@ module.exports = (Sequelize, database) => {
     streamerRole: {
       type: Sequelize.STRING,
       unique: true
+    },
+    uncoverSneakyLinks: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    filterEmojis: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     filterInvites: {
       type: Sequelize.BOOLEAN,
@@ -158,11 +186,6 @@ module.exports = (Sequelize, database) => {
     },
     whitelistedInvites: {
       type: Sequelize.JSON
-    },
-    slowMode: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
     },
     mentionSpamThreshold: {
       type: Sequelize.INTEGER,
@@ -206,13 +229,30 @@ module.exports = (Sequelize, database) => {
     suggestionChannel: {
       type: Sequelize.STRING
     },
+    wordOfTheDayChannel: {
+      type: Sequelize.STRING
+    },
+    botRole: {
+      type: Sequelize.STRING
+    },
     disabledCommands: {
+      type: Sequelize.JSON
+    },
+    allowedRoles: {
+      type: Sequelize.JSON
+    },
+    allowedChannels: {
       type: Sequelize.JSON
     },
     membersOnly: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+    antiRaid: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0
     },
     autoDeleteCommandOutput: {
       type: Sequelize.BOOLEAN,
@@ -224,12 +264,32 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       defaultValue: false
     },
+    showPermsError: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     celebrateBirthday: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
     },
+    reactionAnnouncements: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     reactionPinning: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    carePackages: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    commonMisspellingChecker: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
@@ -298,7 +358,7 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       defaultValue: '0'
     },
-    reputations: {
+    karma: {
       type: Sequelize.TEXT,
       allowNull: false,
       defaultValue: '0'
@@ -399,6 +459,11 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       defaultValue: false
     },
+    ignoreEmojiFilter: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     ignoreInviteFilter: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
@@ -415,11 +480,6 @@ module.exports = (Sequelize, database) => {
       defaultValue: false
     },
     ignoreWordFilter: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
-    },
-    ignoreSlowMode: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
@@ -459,6 +519,14 @@ module.exports = (Sequelize, database) => {
     description: {
       type: Sequelize.BLOB
     },
+    icon: {
+      type: Sequelize.STRING(2048)
+    },
+    ignoreEmojiFilter: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     ignoreInviteFilter: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
@@ -479,11 +547,6 @@ module.exports = (Sequelize, database) => {
       allowNull: false,
       defaultValue: false
     },
-    ignoreSlowMode: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
-    },
     ignoreStarboard: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
@@ -499,6 +562,11 @@ module.exports = (Sequelize, database) => {
     },
     level: {
       type: Sequelize.STRING
+    },
+    exclusive: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     price: {
       type: Sequelize.TEXT
@@ -610,6 +678,23 @@ module.exports = (Sequelize, database) => {
     }
   });
 
+  const Event = database.define('event', {
+    guildID: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: Sequelize.STRING
+    },
+    description: {
+      type: Sequelize.BLOB
+    },
+    time: {
+      type: Sequelize.DATE
+    }
+  });
+
   const Streamers = database.define('streamers', {
     guildID: {
       type: Sequelize.STRING,
@@ -620,6 +705,9 @@ module.exports = (Sequelize, database) => {
       type: Sequelize.STRING,
       allowNull: false,
       unique: true
+    },
+    message: {
+      type: Sequelize.BLOB
     },
     mixer: {
       type: Sequelize.JSON
@@ -715,6 +803,11 @@ module.exports = (Sequelize, database) => {
     onUpdate: 'CASCADE'
   });
   Guild.Shop = Guild.hasOne(Shop, {
+    foreignKey: 'guildID',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  });
+  Guild.Events = Guild.hasMany(Event, {
     foreignKey: 'guildID',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'

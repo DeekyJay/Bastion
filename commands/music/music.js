@@ -5,64 +5,56 @@
  */
 
 exports.exec = async (Bastion, message, args) => {
-  try {
-    if (!args.guildID) {
-      args.guildID = message.guild.id;
+  if (!args.id) args.id = message.guild.id;
+
+  let guildModel = await message.client.database.models.guild.findOne({
+    attributes: [ 'guildID', 'music' ],
+    where: {
+      guildID: args.id
     }
+  });
 
-    let guildModels = await message.client.database.models.guild.findAll({
-      attributes: [ 'guildID', 'music' ]
-    });
-    let guilds = guildModels.map(model => model.dataValues.guildID);
+  if (!guildModel) {
+    return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'notFound', 'server'), message.channel);
+  }
 
-    if (!guilds.includes(args.guildID)) {
-      return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'notFound', 'server'), message.channel);
-    }
+  let musicStatus = !guildModel.dataValues.music;
 
-    let guild = guildModels.filter(model => model.dataValues.guildID === args.guildID);
-    guild = guild[0];
-
-    let musicStatus = !guild.dataValues.music;
-
-    await message.client.database.models.guild.update({
-      music: musicStatus
+  await message.client.database.models.guild.update({
+    music: musicStatus
+  },
+  {
+    where: {
+      guildID: args.id
     },
-    {
-      where: {
-        guildID: args.guildID
-      },
-      fields: [ 'music' ]
-    });
+    fields: [ 'music' ]
+  });
 
-    guild = Bastion.resolver.resolveGuild(guild.guildID);
-    let guildDetails = guild ? `**${guild.name}** / ${args.guildID}` : `**${args.guildID}**`;
+  let guild = Bastion.resolver.resolveGuild(args.id);
+  let guildDetails = guild ? `**${guild.name}** / ${args.id}` : `**${args.id}**`;
 
-    message.channel.send({
-      embed: {
-        color: musicStatus ? Bastion.colors.GREEN : Bastion.colors.RED,
-        description: `Music support has been ${musicStatus ? 'enabled' : 'disabled'} in the server ${guildDetails}`
-      }
-    }).catch(e => {
-      Bastion.log.error(e);
-    });
-  }
-  catch (e) {
+  await message.channel.send({
+    embed: {
+      color: musicStatus ? Bastion.colors.GREEN : Bastion.colors.RED,
+      description: `Music support has been ${musicStatus ? 'enabled' : 'disabled'} in the server ${guildDetails}`
+    }
+  }).catch(e => {
     Bastion.log.error(e);
-  }
+  });
 };
 
 exports.config = {
   aliases: [],
   enabled: true,
   argsDefinitions: [
-    { name: 'guildID', type: String, defaultOption: true }
+    { name: 'id', type: String, defaultOption: true }
   ],
   ownerOnly: true
 };
 
 exports.help = {
   name: 'music',
-  description: 'Toggle music support for a specified server.',
+  description: 'Toggle music support for the specified server.',
   botPermission: '',
   userTextPermission: '',
   userVoicePermission: '',

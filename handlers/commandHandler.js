@@ -17,7 +17,7 @@ const activeUsers = {};
 module.exports = async message => {
   try {
     let guildModel = await message.client.database.models.guild.findOne({
-      attributes: [ 'enabled', 'prefix', 'language', 'membersOnly', 'music', 'musicTextChannel', 'musicVoiceChannel', 'musicMasterRole', 'disabledCommands' ],
+      attributes: [ 'enabled', 'prefix', 'language', 'membersOnly', 'music', 'musicAutoPlay', 'musicAutoDisconnect', 'musicTextChannel', 'musicVoiceChannel', 'musicMasterRole', 'disabledCommands' ],
       where: {
         guildID: message.guild.id
       },
@@ -54,6 +54,10 @@ module.exports = async message => {
     }
     // Set music support status of the guild.
     message.guild.music.enabled = guildModel.dataValues.music;
+    // Set music auto play status
+    message.guild.music.autoPlay = guildModel.dataValues.musicAutoPlay;
+    // Set music auto disconnect status
+    message.guild.music.autoDisconnect = guildModel.dataValues.musicAutoDisconnect;
     // If any of the music channels have been removed, delete them from the database.
     if (!message.guild.channels.has(guildModel.dataValues.musicTextChannel) || !message.guild.channels.has(guildModel.dataValues.musicVoiceChannel)) {
       await message.client.database.models.guild.update({
@@ -169,7 +173,11 @@ module.exports = async message => {
     let blacklistedChannels = guildModel.textChannels.length && guildModel.textChannels.filter(model => model.dataValues.blacklisted).map(model => model.dataValues.channelID);
     let blacklistedRoles = guildModel.roles.length && guildModel.roles.filter(model => model.dataValues.blacklisted).map(model => model.dataValues.roleID);
 
-    if ((blacklistedChannels && blacklistedChannels.includes(message.channel.id)) || (blacklistedRoles && message.member.roles.some(role => blacklistedRoles.includes(role.id)))) return message.client.log.info('The command is either used in a blacklisted channel or the user is in a blacklisted role.');
+    if (!message.member.hasPermission('MANAGE_GUILD')) {
+      if ((blacklistedChannels && blacklistedChannels.includes(message.channel.id)) || (blacklistedRoles && message.member.roles.some(role => blacklistedRoles.includes(role.id)))) {
+        return message.client.log.info('The command is either used in a blacklisted channel or the user is in a blacklisted role.');
+      }
+    }
 
     /**
      * Check if a command is disabled

@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 
-exports.exec = (Bastion, message, args) => {
+exports.exec = async (Bastion, message, args) => {
   if (!message.guild.music.enabled) {
     if (Bastion.user.id === '267035345537728512') {
       return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabledPublic'), message.channel);
@@ -20,14 +20,16 @@ exports.exec = (Bastion, message, args) => {
     return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'notPlaying'), message.channel);
   }
 
-  let songs = message.guild.music.songs.slice(1);
-  songs = songs.map((song, i) => `**${i + 1}.** ${song.title}`);
+  let songs = message.guild.music.songs;
 
   let noOfPages = songs.length / 10;
   let i = (args.page > 0 && args.page < noOfPages + 1) ? args.page : 1;
   i = i - 1;
 
-  message.guild.music.textChannel.send({
+  songs = songs.slice(1);
+  songs = songs.map((song, i) => `**${i + 1}.** ${song.title}`);
+
+  await message.guild.music.textChannel.send({
     embed: {
       color: Bastion.colors.BLUE,
       title: 'Music queue',
@@ -45,8 +47,6 @@ exports.exec = (Bastion, message, args) => {
         text: `Page: ${i + 1} of ${noOfPages > parseInt(noOfPages) ? parseInt(noOfPages) + 1 : parseInt(noOfPages)} • ${message.guild.music.songs.length - 1} songs in queue`
       }
     }
-  }).catch(e => {
-    Bastion.log.error(e);
   });
 };
 

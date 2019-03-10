@@ -4,32 +4,32 @@
  * @license GPL-3.0
  */
 
-exports.exec = (Bastion, message) => {
-  try {
-    if (message.guild.music) {
-      message.guild.music.songs = [];
-
-      if (message.guild.music.dispatcher) {
-        message.guild.music.dispatcher.end();
-      }
+exports.exec = async (Bastion, message) => {
+  if (!message.guild.music.enabled) {
+    if (Bastion.user.id === '267035345537728512') {
+      return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabledPublic'), message.channel);
     }
-
-    if (message.guild.voiceConnection) {
-      message.guild.voiceConnection.disconnect();
-    }
-
-    message.channel.send({
-      embed: {
-        color: Bastion.colors.RED,
-        description: 'Disconnected from the voice connection of this server.'
-      }
-    }).catch(e => {
-      Bastion.log.error(e);
-    });
+    return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'musicDisabled'), message.channel);
   }
-  catch (e) {
+
+  message.guild.music.songs = [];
+
+  if (message.guild.music.dispatcher) {
+    message.guild.music.dispatcher.end();
+  }
+
+  if (message.guild.voiceConnection) {
+    message.guild.voiceConnection.disconnect();
+  }
+
+  await message.channel.send({
+    embed: {
+      color: Bastion.colors.RED,
+      description: 'Disconnected from the voice connection of this server.'
+    }
+  }).catch(e => {
     Bastion.log.error(e);
-  }
+  });
 };
 
 exports.config = {
