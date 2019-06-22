@@ -121,16 +121,17 @@ exports.exec = async (Bastion, message, args) => {
         message.guild.music.songs.push(song);
       }
 
-      await message.channel.send({
-        embed: {
-          color: Bastion.colors.GREEN,
-          description: `Added ${songs.length} songs to the queue from your playlist.`
-        }
-      }).catch(e => {
-        Bastion.log.error(e);
-      });
-    }
-    else {
+      await message.channel
+        .send({
+          embed: {
+            color: Bastion.colors.GREEN,
+            description: `Added ${songs.length} songs to the queue from your playlist.`,
+          },
+        })
+        .catch(e => {
+          Bastion.log.error(e);
+        });
+    } else {
       let playlist = false;
       args.song = args.song.join(' ');
       if (
@@ -188,16 +189,17 @@ exports.exec = async (Bastion, message, args) => {
           });
         });
 
-        await message.channel.send({
-          embed: {
-            color: Bastion.colors.GREEN,
-            description: `Added ${songInfo.length} songs to the queue from the YouTube playlist.`
-          }
-        }).catch(e => {
-          Bastion.log.error(e);
-        });
-      }
-      else {
+        await message.channel
+          .send({
+            embed: {
+              color: Bastion.colors.GREEN,
+              description: `Added ${songInfo.length} songs to the queue from the YouTube playlist.`,
+            },
+          })
+          .catch(e => {
+            Bastion.log.error(e);
+          });
+      } else {
         message.guild.music.songs.push({
           url: songInfo.url,
           id: songInfo.id,
@@ -207,14 +209,16 @@ exports.exec = async (Bastion, message, args) => {
           requester: message.author.tag,
         });
 
-        await textChannel.send({
-          embed: {
-            color: Bastion.colors.GREEN,
-            title: 'Added to the queue',
-            url: songInfo.id ? `https://youtu.be/${songInfo.id}` : '',
-            description: songInfo.title,
-            thumbnail: {
-              url: songInfo.thumbnail
+        await textChannel
+          .send({
+            embed: {
+              color: Bastion.colors.GREEN,
+              title: 'Added to the queue',
+              url: songInfo.id ? `https://youtu.be/${songInfo.id}` : '',
+              description: songInfo.title,
+              thumbnail: {
+                url: songInfo.thumbnail,
+              },
             },
           })
           .catch(e => {
@@ -284,13 +288,18 @@ async function startStreamDispatcher(guild, connection) {
       '--format=bestaudio[protocol^=http]',
       '--user-agent=BastionDiscordBot (https://bastionbot.org)',
       '--referer=https://bastionbot.org',
-      '--youtube-skip-dash-manifest'
+      '--youtube-skip-dash-manifest',
     ];
 
     let songInfo = await getSongInfo(`https://youtu.be/${videoID}`, youtubeDLOptions);
 
     if (!songInfo) {
-      return guild.client.emit('error', '', guild.client.i18n.error(guild.language, 'notFound', 'result'), guild.music.textChannel);
+      return guild.client.emit(
+        'error',
+        '',
+        guild.client.i18n.error(guild.language, 'notFound', 'result'),
+        guild.music.textChannel,
+      );
     }
 
     guild.music.songs.push({
@@ -299,10 +308,9 @@ async function startStreamDispatcher(guild, connection) {
       title: songInfo.title,
       thumbnail: songInfo.thumbnail,
       duration: songInfo.duration,
-      requester: guild.client.user.tag
+      requester: guild.client.user.tag,
     });
-  }
-  else if (!guild.music.songs[0] || connection.channel.members.size <= 1) {
+  } else if (!guild.music.songs[0] || connection.channel.members.size <= 1) {
     if (guild.client.configurations.music && guild.client.configurations.music.status) {
       guild.client.user.setActivity(
         typeof guild.client.configurations.game.name === 'string'
@@ -324,23 +332,26 @@ async function startStreamDispatcher(guild, connection) {
     let description;
     if (!guild.music.songs[0]) {
       description = 'Stopping playback.';
-    }
-    else {
+    } else {
       guild.music.songs = [];
-      description = 'It appears I\'ve been by myself in this voice channel since the last song. The bandwidth patrol has asked me to stop the playback to save bandwidth. That stuff doesn\'t grow on trees!';
+      description =
+        "It appears I've been by myself in this voice channel since the last song. The bandwidth patrol has asked me to stop the playback to save bandwidth. That stuff doesn't grow on trees!";
     }
 
-    return guild.music.textChannel.send({
-      embed: {
-        color: guild.client.colors.RED,
-        description: description
-      }
-    }).then(() => {
-      guild.music.dispatcher.end();
-      if (guild.music.autoDisconnect) guild.music.voiceChannel.leave();
-    }).catch(e => {
-      guild.client.log.error(e);
-    });
+    return guild.music.textChannel
+      .send({
+        embed: {
+          color: guild.client.colors.RED,
+          description: description,
+        },
+      })
+      .then(() => {
+        guild.music.dispatcher.end();
+        if (guild.music.autoDisconnect) guild.music.voiceChannel.leave();
+      })
+      .catch(e => {
+        guild.client.log.error(e);
+      });
   }
 
   let stream = youtubeDL(guild.music.songs[0].url);

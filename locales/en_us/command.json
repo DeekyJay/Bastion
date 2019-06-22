@@ -92,6 +92,9 @@
   "buyRole": {
     "description": "Buy role from the server's Role Store."
   },
+  "cacheMembers": {
+    "description": "Fetches all members of your server from Discord and stores them in Bastion's local cache."
+  },
   "calculate": {
     "description": "Evaluates any mathematical expression."
   },
@@ -395,6 +398,9 @@
   "inRole": {
     "description": "Shows members that have a specified role in your Discord server."
   },
+  "invite": {
+    "description": "Shows you a invite links to the server and also shows how to invite Bastion."
+  },
   "isBreached": {
     "description": "Check if a site has been breached in the past."
   },
@@ -403,6 +409,9 @@
   },
   "jumbledWord": {
     "description": "Unscramble the given jumbled word and increase your vocabulary skills while having fun with your friends."
+  },
+  "karmaBoard": {
+    "description": "Shows the users with the highest karma in the server."
   },
   "kick": {
     "description": "Kicks the specified user from your Discord server."
@@ -433,6 +442,9 @@
   },
   "listAutoAssignableRoles": {
     "description": "Lists all auto-assignable roles."
+  },
+  "listBans": {
+    "description": "Lists all the banned users of the Discord Server with the reason for the ban."
   },
   "listFilteredWords": {
     "description": "Lists all filtered words."
@@ -501,7 +513,7 @@
     "description": "Encodes a given text in Morse Code."
   },
   "moveMembers": {
-    "description": "Moves all the members in a voice channel to another specified voice channel."
+    "description": "Moves all the members in a voice channel to another specified voice channel. If the destination voice channel is not specified, Bastion will instead kick all the members from the source voice channel."
   },
   "movie": {
     "description": "Searches for the details of a movie."
@@ -660,7 +672,7 @@
     "description": "Resets the moderation log cases back to 1."
   },
   "resetProfile": {
-    "description": "Resets all your profile data, inluding all the XP, level, karma and currency that you've earned. If you have Manage Server permission, you can delete everyone's profiles."
+    "description": "Resets all your profile data, inluding all the XP, level, karma and currency that you've earned. If you have Manage Server permission, you can reset anyone and everyone's profiles."
   },
   "resume": {
     "description": "Resumes the previously paused playback."

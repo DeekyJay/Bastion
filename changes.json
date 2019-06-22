@@ -1,11 +1,20 @@
 {
-  "date": "February 26, 2019",
-  "image": "https://i.imgur.com/PgTmB5V.gif",
-  "CHANGES": [
-    "Sneaky links monitor won't run for bots anymore.",
-    "Some under-the-hood, super-secret, changes!"
+  "date": "June 20, 2019",
+  "image": "https://i.imgur.com/k6azzsE.gif",
+  "NEW STUFF": [
+    "You can now use the `resetProfile` command to reset any user's profile, provided that you've Manage Server permissions.",
+    "If your server has a huge amount of users, sometimes you might have noticed that a few features (like level up roles) doesn't seem to work for a few users. That's become some user's are not in Bastion's cache. So, to get around that, the `cacheMembers` command was added. It can be used by server managers for caching all the members of the server."
+  ],
+  "IMPROVEMENTS": [
+    "The `google` command will now show more accurate search results.",
+    "You will now be able to see the correct answer to the jumbed word, after the game is over. No more wondering what the correct answer was!",
+    "The `profile` command has been tweaked a bit. Try it to find out.",
+    "Bastion will now show warning messages if a message is filtered because of forbidden words. No more silently deleting the messages."
   ],
   "KILLED THESE BUGS": [
-    "Fixed an issue with the `reputation` command that gave karma to yourself!"
+    "Fixed the `levelUpRoles` command showing the **Level null** for some roles that weren't assigned any level.",
+    "The `poll` command can now run for exactly 24 hours! For people who hadn't noticed, it only allowed you to run for 23 hours and 59 minutes.",
+    "Fixed the `google` command not showing any search results.",
+    "Some under-the-hood fixes, as usual."
   ]
 }
