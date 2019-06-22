@@ -11,17 +11,22 @@ exports.exec = async (Bastion, message) => {
     url: 'http://api.giphy.com/v1/gifs/search',
     qs: {
       q: 'kiss',
-      api_key: 'dc6zaTOxFJmzC',
+      api_key: 'mVoRdelEC0rJkVqAgQ5jhkc3p0NrBUTT',
       limit: 10,
-      offset: 0
+      offset: 0,
     },
-    json: true
+    json: true,
   };
 
   let response = await request(options);
 
   if (!response.data.length) {
-    return Bastion.emit('error', Bastion.strings.error(message.guild.language, 'notFound'), Bastion.strings.error(message.guild.language, 'notFound', true, 'image'), message.channel);
+    return Bastion.emit(
+      'error',
+      Bastion.strings.error(message.guild.language, 'notFound'),
+      Bastion.strings.error(message.guild.language, 'notFound', true, 'image'),
+      message.channel,
+    );
   }
 
   await message.channel.send({
@@ -29,18 +34,18 @@ exports.exec = async (Bastion, message) => {
       color: Bastion.colors.BLUE,
       title: `A kiss from ${message.author.tag}`,
       image: {
-        url: response.data[Math.floor(Math.random() * response.data.length)].images.original.url
+        url: response.data[Math.floor(Math.random() * response.data.length)].images.original.url,
       },
       footer: {
-        text: 'Powered by GIPHY'
-      }
-    }
+        text: 'Powered by GIPHY',
+      },
+    },
   });
 };
 
 exports.config = {
   aliases: [],
-  enabled: true
+  enabled: true,
 };
 
 exports.help = {
@@ -50,5 +55,5 @@ exports.help = {
   userTextPermission: '',
   userVoicePermission: '',
   usage: 'kiss',
-  example: [ 'kiss' ]
+  example: ['kiss'],
 };

@@ -38,14 +38,16 @@ exports.exec = async (Bastion, message, args) => {
       );
     }
     let channel = channels.find(channel => channel.members.find(member => member.id === authorId));
-
     if (!channel) {
-      return Bastion.emit(
-        'error',
-        'No Voice Channel',
-        'You are not in a voice channel.',
-        message.channel,
-      );
+      channel = channels.find(channel => channel.members.length);
+      if (!channel) {
+        return Bastion.emit(
+          'error',
+          'No Voice Channel',
+          'Nobody is in a voice channel.',
+          message.channel,
+        );
+      }
     }
 
     voiceChannel = channel;

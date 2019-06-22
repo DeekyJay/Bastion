@@ -15,11 +15,11 @@ exports.exec = async (Bastion, message, args) => {
     url: 'http://api.giphy.com/v1/gifs/search',
     qs: {
       q: encodeURI(args.join('+')),
-      api_key: 'dc6zaTOxFJmzC',
+      api_key: 'mVoRdelEC0rJkVqAgQ5jhkc3p0NrBUTT',
       limit: 10,
-      offset: 0
+      offset: 0,
     },
-    json: true
+    json: true,
   };
 
   let response = await request(options);
@@ -30,22 +30,26 @@ exports.exec = async (Bastion, message, args) => {
         color: Bastion.colors.BLUE,
         title: `GIF Search for ${args.join(' ')}`.slice(0, 256),
         image: {
-          url: response.data.getRandom().images.original.url
+          url: response.data.getRandom().images.original.url,
         },
         footer: {
-          text: 'Powered by GIPHY'
-        }
-      }
+          text: 'Powered by GIPHY',
+        },
+      },
     });
-  }
-  else {
-    return Bastion.emit('error', '', Bastion.i18n.error(message.guild.language, 'notFound', 'image'), message.channel);
+  } else {
+    return Bastion.emit(
+      'error',
+      '',
+      Bastion.i18n.error(message.guild.language, 'notFound', 'image'),
+      message.channel,
+    );
   }
 };
 
 exports.config = {
-  aliases: [ 'gif' ],
-  enabled: true
+  aliases: ['gif'],
+  enabled: true,
 };
 
 exports.help = {
@@ -55,5 +59,5 @@ exports.help = {
   userTextPermission: '',
   userVoicePermission: '',
   usage: 'giphy <query>',
-  example: [ 'giphy iron man' ]
+  example: ['giphy iron man'],
 };
