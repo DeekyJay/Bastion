@@ -115,6 +115,10 @@
     "description": "Searches for the details of a book",
     "module": "Searches"
   },
+  "bunny": {
+    "description": "Show a random picture of a bunny",
+    "module": "Fun"
+  },
   "buy": {
     "description": "Buy items from the server's shop. You can also gift it to some other member while buying.",
     "module": "Profile"
