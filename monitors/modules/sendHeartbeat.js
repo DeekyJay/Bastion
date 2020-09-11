@@ -9,16 +9,6 @@
  * @param {TesseractClient} Bastion Tesseract client object
  * @returns {void}
  */
-module.exports = async Bastion => {
-  try {
-    return await Bastion.methods.makeBWAPIRequest('/heartbeat', {
-      method: 'POST',
-      body: {
-        bot: Bastion.user.id
-      }
-    });
-  }
-  catch (e) {
-    Bastion.log.error(e);
-  }
+module.exports = () => {
+  return true;
 };
