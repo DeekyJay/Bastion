@@ -14,6 +14,7 @@ public class VillageManager {
 
   private final Bastion plugin;
   private UpgradeManager upgradeManager;
+  private BarrierManager barrierManager;
   private Location villageCenter;
   private List<Villager> registeredVillagers;
   private boolean isProtected;
@@ -26,6 +27,10 @@ public class VillageManager {
 
   public void setUpgradeManager(UpgradeManager upgradeManager) {
     this.upgradeManager = upgradeManager;
+  }
+
+  public void setBarrierManager(BarrierManager barrierManager) {
+    this.barrierManager = barrierManager;
   }
 
   /**
@@ -56,8 +61,10 @@ public class VillageManager {
    * @return true if the location is valid
    */
   private boolean isValidVillageLocation(Location location) {
-    // Check for minimum required space (100x100)
-    int radius = 50; // 100x100 area means 50 block radius
+    // Get barrier radius from config, fallback to 80 if barrier manager not set
+    int radius = barrierManager != null
+      ? barrierManager.getBarrierRadius()
+      : plugin.getConfig().getInt("village.barrier.radius", 80);
     World world = location.getWorld();
 
     // Check if area has enough solid ground
@@ -83,7 +90,10 @@ public class VillageManager {
    */
   private void registerVillagersInRange(World world) {
     registeredVillagers.clear();
-    int radius = 50;
+    // Get barrier radius from config, fallback to 80 if barrier manager not set
+    int radius = barrierManager != null
+      ? barrierManager.getBarrierRadius()
+      : plugin.getConfig().getInt("village.barrier.radius", 80);
 
     for (Entity entity : world.getEntities()) {
       if (entity.getType() == EntityType.VILLAGER) {

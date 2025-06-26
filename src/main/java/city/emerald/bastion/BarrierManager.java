@@ -2,9 +2,11 @@ package city.emerald.bastion;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,14 +19,33 @@ public class BarrierManager implements Listener {
   private final Bastion plugin;
   private final VillageManager villageManager;
   private boolean isActive;
-  private final int BARRIER_RADIUS = 50; // 100x100 area means 50 block radius
-  private final int BARRIER_HEIGHT = 256;
+  private int barrierRadius;
+  private int barrierHeight;
+  private boolean domeShape;
+  private boolean showUnderground;
+  private double particleDensity;
+  private int particleSpacing;
+  private int updateInterval;
   private BukkitRunnable particleTask;
+
+  // Enhanced particle system settings
+  private float particleSize;
+  private boolean useMultipleParticleTypes;
+  private boolean enableParticleAnimation;
+  private int maxUndergroundDepth;
+  private boolean debugMode;
+  private Color primaryColor;
+  private Color secondaryColor;
+  private int particleIntensity;
 
   public BarrierManager(Bastion plugin, VillageManager villageManager) {
     this.plugin = plugin;
     this.villageManager = villageManager;
     this.isActive = false;
+
+    // Load configuration values
+    loadConfiguration();
+
     // Register both the barrier and spawn prevention events
     plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
@@ -58,6 +79,89 @@ public class BarrierManager implements Listener {
         },
         plugin
       );
+  }
+
+  /**
+   * Loads configuration values from the plugin config
+   */
+  private void loadConfiguration() {
+    this.barrierRadius =
+      plugin.getConfig().getInt("village.barrier.radius", 80);
+    this.barrierHeight =
+      plugin.getConfig().getInt("village.barrier.height", 256);
+    this.domeShape =
+      plugin.getConfig().getBoolean("village.barrier.dome-shape", true);
+    this.showUnderground =
+      plugin.getConfig().getBoolean("village.barrier.show-underground", true);
+    this.particleDensity =
+      plugin.getConfig().getDouble("effects.barrier.particle-density", 1.0);
+    this.particleSpacing =
+      plugin.getConfig().getInt("effects.barrier.particle-spacing", 2);
+    this.updateInterval =
+      plugin.getConfig().getInt("effects.barrier.update-interval", 20);
+
+    // Enhanced particle settings
+    this.particleSize =
+      (float) plugin
+        .getConfig()
+        .getDouble("effects.barrier.particle-size", 4.0);
+    this.useMultipleParticleTypes =
+      plugin
+        .getConfig()
+        .getBoolean("effects.barrier.multiple-particle-types", true);
+    this.enableParticleAnimation =
+      plugin.getConfig().getBoolean("effects.barrier.particle-animation", true);
+    this.maxUndergroundDepth =
+      plugin.getConfig().getInt("effects.barrier.max-underground-depth", 20);
+    this.debugMode =
+      plugin.getConfig().getBoolean("effects.barrier.debug-mode", false);
+    this.particleIntensity =
+      plugin.getConfig().getInt("effects.barrier.particle-intensity", 3);
+
+    // Load particle colors
+    String primaryColorStr = plugin
+      .getConfig()
+      .getString("effects.barrier.primary-color", "0,255,255"); // Bright cyan
+    String secondaryColorStr = plugin
+      .getConfig()
+      .getString("effects.barrier.secondary-color", "255,255,0"); // Bright yellow
+    this.primaryColor = parseColor(primaryColorStr);
+    this.secondaryColor = parseColor(secondaryColorStr);
+  }
+
+  /**
+   * Parses a color string in format "R,G,B" to Color object
+   */
+  private Color parseColor(String colorStr) {
+    try {
+      String[] parts = colorStr.split(",");
+      if (parts.length == 3) {
+        int r = Integer.parseInt(parts[0].trim());
+        int g = Integer.parseInt(parts[1].trim());
+        int b = Integer.parseInt(parts[2].trim());
+        return Color.fromRGB(
+          Math.max(0, Math.min(255, r)),
+          Math.max(0, Math.min(255, g)),
+          Math.max(0, Math.min(255, b))
+        );
+      }
+    } catch (Exception e) {
+      if (debugMode) {
+        plugin
+          .getLogger()
+          .warning(
+            "Failed to parse color: " + colorStr + ", using default cyan"
+          );
+      }
+    }
+    return Color.fromRGB(0, 255, 255); // Default to cyan
+  }
+
+  /**
+   * Reloads configuration values (useful for config changes)
+   */
+  public void reloadConfiguration() {
+    loadConfiguration();
   }
 
   /**
@@ -101,39 +205,320 @@ public class BarrierManager implements Listener {
           Location center = villageManager.getVillageCenter().get();
           World world = center.getWorld();
 
-          // Display particles in a circular pattern
-          // More frequent particles
-          for (int degree = 0; degree < 360; degree += 2) {
-            double radian = Math.toRadians(degree);
-            double x = center.getX() + (BARRIER_RADIUS * Math.cos(radian));
-            double z = center.getZ() + (BARRIER_RADIUS * Math.sin(radian));
-
-            // Create vertical line of particles
-            // More visible particles
-            for (int y = 0; y < BARRIER_HEIGHT; y += 4) {
-              Location particleLoc = new Location(
-                world,
-                x,
-                center.getY() + y,
-                z
-              );
-              // Brighter, larger particles
-              world.spawnParticle(
-                Particle.DUST,
-                particleLoc,
-                1,
-                0,
-                0,
-                0,
-                new DustOptions(Color.fromRGB(255, 0, 0), 2.0f)
-              );
-            }
+          if (domeShape) {
+            generateDomeParticles(world, center);
+          } else {
+            generateCylindricalParticles(world, center);
           }
         }
       };
 
-    // Run particle effect every 20 ticks (1 second)
-    particleTask.runTaskTimer(plugin, 0L, 20L);
+    // Run particle effect using configured interval
+    particleTask.runTaskTimer(plugin, 0L, updateInterval);
+  }
+
+  /**
+   * Generates 3D dome-shaped particle pattern extending underground
+   */
+  private void generateDomeParticles(World world, Location center) {
+    double angleStep = Math.toRadians(
+      particleSpacing * 360.0 / (2 * Math.PI * barrierRadius)
+    );
+
+    // Generate full sphere using spherical coordinates, but limit underground extent
+    for (double phi = 0; phi <= Math.PI; phi += angleStep) { // Full elevation range (0 to 180 degrees)
+      double ringRadius = barrierRadius * Math.sin(phi);
+      double yOffset = barrierRadius * Math.cos(phi);
+
+      if (ringRadius < 1) continue; // Skip very small rings near the poles
+
+      // For underground sections, limit how deep we go
+      double actualY = center.getY() + yOffset;
+
+      // Don't go below world minimum or too far underground
+      int worldMinY = world.getMinHeight();
+      int maxUndergroundY = center.getBlockY() - maxUndergroundDepth;
+
+      if (actualY < Math.max(worldMinY, maxUndergroundY)) {
+        continue; // Skip particles that are too deep underground
+      }
+
+      double circumference = 2 * Math.PI * ringRadius;
+      int pointsOnRing = Math.max(8, (int) (circumference / particleSpacing));
+
+      for (int i = 0; i < pointsOnRing; i++) {
+        double theta = 2 * Math.PI * i / pointsOnRing; // Azimuth angle
+
+        double x = center.getX() + ringRadius * Math.cos(theta);
+        double y = actualY;
+        double z = center.getZ() + ringRadius * Math.sin(theta);
+
+        Location particleLoc = new Location(world, x, y, z);
+
+        // Enhanced visibility check for underground particles
+        if (shouldShowParticleAtLocation(particleLoc, center)) {
+          spawnBarrierParticle(world, particleLoc);
+        }
+      }
+    }
+  }
+
+  /**
+   * Determines if a particle should be shown at the given location
+   */
+  private boolean shouldShowParticleAtLocation(
+    Location particleLoc,
+    Location center
+  ) {
+    // Always show particles above ground level
+    if (particleLoc.getY() >= center.getY()) {
+      return showUnderground || isLocationVisible(particleLoc);
+    }
+
+    // For underground particles, only show if underground mode is enabled AND there are air spaces
+    if (!showUnderground) {
+      return false;
+    }
+
+    // Enhanced underground detection
+    return isLocationVisible(particleLoc);
+  }
+
+  /**
+   * Generates cylindrical wall particle pattern extending underground (legacy mode)
+   */
+  private void generateCylindricalParticles(World world, Location center) {
+    for (int degree = 0; degree < 360; degree += particleSpacing) {
+      double radian = Math.toRadians(degree);
+      double x = center.getX() + (barrierRadius * Math.cos(radian));
+      double z = center.getZ() + (barrierRadius * Math.sin(radian));
+
+      // Calculate underground and above-ground ranges
+      int worldMinY = world.getMinHeight();
+      int maxUndergroundY = center.getBlockY() - maxUndergroundDepth;
+      int startY = Math.max(worldMinY, maxUndergroundY);
+      int endY = center.getBlockY() + barrierHeight;
+
+      // Generate particles from underground up to barrier height
+      for (int y = startY; y < endY; y += particleSpacing) {
+        Location particleLoc = new Location(world, x, y, z);
+
+        if (shouldShowParticleAtLocation(particleLoc, center)) {
+          spawnBarrierParticle(world, particleLoc);
+        }
+      }
+    }
+  }
+
+  /**
+   * Enhanced visibility check for underground cave detection
+   */
+  private boolean isLocationVisible(Location location) {
+    Block block = location.getBlock();
+    Material type = block.getType();
+
+    // Check if the current location is air-like
+    if (isAirLike(type)) {
+      return true;
+    }
+
+    // If we're not showing underground particles, stop here
+    if (!showUnderground) {
+      return false;
+    }
+
+    // For underground detection, check if there are air spaces below this location
+    return hasAirSpacesBelow(location);
+  }
+
+  /**
+   * Checks if a material is considered air-like for barrier visibility
+   */
+  private boolean isAirLike(Material type) {
+    return (
+      type == Material.AIR ||
+      type == Material.CAVE_AIR ||
+      type == Material.VOID_AIR ||
+      type == Material.WATER ||
+      type == Material.LAVA ||
+      !type.isSolid()
+    );
+  }
+
+  /**
+   * Enhanced underground cave detection - checks for air spaces below surface level
+   */
+  private boolean hasAirSpacesBelow(Location location) {
+    World world = location.getWorld();
+    int surfaceY = world.getHighestBlockYAt(location);
+    int currentY = location.getBlockY();
+
+    // If we're above surface, use normal air check
+    if (currentY >= surfaceY) {
+      return isAirLike(location.getBlock().getType());
+    }
+
+    // We're below surface - check for air spaces in a small radius around this position
+    for (int checkY = currentY - 2; checkY <= currentY + 2; checkY++) {
+      if (
+        checkY < world.getMinHeight() ||
+        checkY > Math.min(currentY + maxUndergroundDepth, surfaceY)
+      ) {
+        continue;
+      }
+
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dz = -1; dz <= 1; dz++) {
+          Location checkLoc = new Location(
+            world,
+            location.getX() + dx,
+            checkY,
+            location.getZ() + dz
+          );
+
+          if (isAirLike(checkLoc.getBlock().getType())) {
+            if (debugMode) {
+              plugin
+                .getLogger()
+                .info(
+                  "Found air space at " +
+                  checkLoc +
+                  " near barrier position " +
+                  location
+                );
+            }
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Enhanced particle spawning with multiple effects and animation
+   */
+  private void spawnBarrierParticle(World world, Location location) {
+    // Calculate animation effects
+    long currentTime = System.currentTimeMillis();
+    double animationPhase = enableParticleAnimation
+      ? Math.sin(currentTime / 1000.0 + location.getX() + location.getZ())
+      : 0;
+
+    // Determine colors based on animation
+    Color currentPrimaryColor = primaryColor;
+    Color currentSecondaryColor = secondaryColor;
+
+    if (enableParticleAnimation) {
+      // Pulse between primary and secondary colors
+      double pulseIntensity = (animationPhase + 1.0) / 2.0; // Normalize to 0-1
+      currentPrimaryColor =
+        blendColors(primaryColor, secondaryColor, pulseIntensity);
+    }
+
+    // Spawn multiple particle types for better visibility
+    for (int i = 0; i < particleIntensity; i++) {
+      // Primary dust particles
+      world.spawnParticle(
+        Particle.DUST,
+        location.getX() + (Math.random() - 0.5) * 0.3,
+        location.getY() + (Math.random() - 0.5) * 0.3,
+        location.getZ() + (Math.random() - 0.5) * 0.3,
+        1,
+        0,
+        0,
+        0,
+        new DustOptions(
+          currentPrimaryColor,
+          particleSize * (float) particleDensity
+        )
+      );
+
+      if (useMultipleParticleTypes) {
+        // Add flame particles for extra visibility
+        if (i == 0) {
+          world.spawnParticle(
+            Particle.FLAME,
+            location.getX(),
+            location.getY(),
+            location.getZ(),
+            1,
+            0.1,
+            0.1,
+            0.1,
+            0.01
+          );
+        }
+
+        // Add enchantment table particles for magical effect
+        if (i == 1 && particleIntensity > 1) {
+          world.spawnParticle(
+            Particle.ENCHANT,
+            location.getX(),
+            location.getY() + 0.5,
+            location.getZ(),
+            2,
+            0.2,
+            0.2,
+            0.2,
+            0.5
+          );
+        }
+
+        // Add firework spark for high intensity
+        if (i == 2 && particleIntensity > 2) {
+          world.spawnParticle(
+            Particle.FIREWORK,
+            location.getX(),
+            location.getY(),
+            location.getZ(),
+            1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          );
+        }
+      }
+    }
+
+    // Debug particle spawning
+    if (debugMode) {
+      // Spawn a distinct debug particle
+      world.spawnParticle(
+        Particle.DUST,
+        location.getX(),
+        location.getY() + 1,
+        location.getZ(),
+        1,
+        0,
+        0,
+        0,
+        new DustOptions(Color.fromRGB(255, 255, 255), 1.0f)
+      );
+    }
+  }
+
+  /**
+   * Blends two colors based on intensity (0.0 = color1, 1.0 = color2)
+   */
+  private Color blendColors(Color color1, Color color2, double intensity) {
+    intensity = Math.max(0.0, Math.min(1.0, intensity)); // Clamp to 0-1
+
+    int r1 = color1.getRed();
+    int g1 = color1.getGreen();
+    int b1 = color1.getBlue();
+
+    int r2 = color2.getRed();
+    int g2 = color2.getGreen();
+    int b2 = color2.getBlue();
+
+    int r = (int) (r1 + (r2 - r1) * intensity);
+    int g = (int) (g1 + (g2 - g1) * intensity);
+    int b = (int) (b1 + (b2 - b1) * intensity);
+
+    return Color.fromRGB(r, g, b);
   }
 
   /**
@@ -199,13 +584,50 @@ public class BarrierManager implements Listener {
    * @return true if the location is within bounds
    */
   public boolean isInBarrier(Location location, Location center) {
+    if (domeShape) {
+      return isWithinDome(location, center);
+    } else {
+      return isWithinCylinder(location, center);
+    }
+  }
+
+  /**
+   * Checks if a location is within the spherical dome barrier
+   */
+  private boolean isWithinDome(Location location, Location center) {
+    // Calculate 3D distance from center
+    double dx = location.getX() - center.getX();
+    double dy = location.getY() - center.getY();
+    double dz = location.getZ() - center.getZ();
+
+    // For dome, only consider locations above the center Y level
+    if (dy < 0) {
+      // Below center level, use cylindrical bounds
+      double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+      return horizontalDistance <= barrierRadius;
+    }
+
+    // Above center level, use spherical bounds
+    double distance3D = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    return distance3D <= barrierRadius;
+  }
+
+  /**
+   * Checks if a location is within the cylindrical barrier (legacy mode)
+   */
+  private boolean isWithinCylinder(Location location, Location center) {
     // Check horizontal distance
-    if (location.distanceSquared(center) > BARRIER_RADIUS * BARRIER_RADIUS) {
+    double horizontalDistance = Math.sqrt(
+      Math.pow(location.getX() - center.getX(), 2) +
+      Math.pow(location.getZ() - center.getZ(), 2)
+    );
+
+    if (horizontalDistance > barrierRadius) {
       return false;
     }
 
     // Check vertical bounds
-    return location.getY() >= 0 && location.getY() <= BARRIER_HEIGHT;
+    return location.getY() >= 0 && location.getY() <= barrierHeight;
   }
 
   /**
@@ -224,6 +646,30 @@ public class BarrierManager implements Listener {
    */
   public boolean isActive() {
     return isActive;
+  }
+
+  /**
+   * Gets the current barrier radius.
+   * @return the barrier radius in blocks
+   */
+  public int getBarrierRadius() {
+    return barrierRadius;
+  }
+
+  /**
+   * Gets the current barrier height.
+   * @return the barrier height in blocks
+   */
+  public int getBarrierHeight() {
+    return barrierHeight;
+  }
+
+  /**
+   * Checks if dome shape is enabled.
+   * @return true if dome shape is enabled
+   */
+  public boolean isDomeShape() {
+    return domeShape;
   }
 
   /**

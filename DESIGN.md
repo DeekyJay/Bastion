@@ -68,16 +68,16 @@ Players work together to defend a village within a confined space, managing reso
 ### Village System
 
 #### Village Selection/Initialization
-- 200×200 block play area
-- Invisible barrier boundaries
+- 80-block radius play area
+- 3D dome barrier boundaries
 - Central spawn point placement
 - Villager registration system
 
 #### Barrier Mechanics
-- Defines valid play area
-- Prevents entry/exit of all entities
-- Visual effect at boundaries
-- Clear boundary markers for players
+- Defines configurable dome-shaped play area
+- Prevents entry/exit of all entities with spherical collision detection
+- 3D dome particle visualization with underground visibility
+- Clear boundary markers for players throughout the dome structure
 
 #### Enhanced Villager Properties
 - Improved pathfinding for escape behavior
@@ -115,8 +115,9 @@ Players work together to defend a village within a confined space, managing reso
    - Player respawn handling
 
 2. Boundary System
-   - 200×200 barrier implementation
-   - Entity containment
+   - Configurable dome barrier implementation (default 80-block radius)
+   - 3D spherical collision detection for entity containment
+   - Enhanced particle visualization system with underground visibility
    - Spawn point management
 
 3. Mob Enhancement System

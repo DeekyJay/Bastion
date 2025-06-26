@@ -57,6 +57,7 @@ public final class Bastion extends JavaPlugin implements Listener {
     upgradeManager = new UpgradeManager(this, villageManager);
     villageManager.setUpgradeManager(upgradeManager);
     barrierManager = new BarrierManager(this, villageManager);
+    villageManager.setBarrierManager(barrierManager);
     waveManager = new WaveManager(this, villageManager);
     lootManager = new LootManager(this, waveManager);
     tradeManager = new TradeManager(this, villageManager, waveManager);
