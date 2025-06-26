@@ -1,0 +1,25 @@
+services:
+  test-mc-server:
+    image: itzg/minecraft-server:latest
+    container_name: test-mc-server
+    ports:
+      - 25565:25565
+    environment:
+      UUID: 1000
+      GUID: 1000
+      EULA: "true"
+      TYPE: "PAPER"
+      VERSION: "1.21.3"
+      # PAPER_BUILD: "63"
+      VIEW_DISTANCE: 20
+      MEMORY: "2G"
+      SERVER_NAME: "Test Server"
+      MOTD: "Test Server"
+      VANILLATWEAKS_SHARECODE: "AJKVqh"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    volumes:
+      # attach a directory relative to the directory containing this compose file
+      - "./server:/data"
+      - "./build/libs:/data/plugins"

@@ -1,0 +1,4 @@
+name: Bastion
+version: '1.0-SNAPSHOT'
+main: city.emerald.bastion.Bastion
+api-version: '1.21'
