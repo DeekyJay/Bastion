@@ -10,26 +10,31 @@ Bastion is a Minecraft plugin that transforms villages into defensive battlegrou
 - Encourage player cooperation and strategic resource management
 - Provide progressive difficulty scaling that maintains challenge
 - Integrate with vanilla Minecraft mechanics for natural gameplay feel
+- Prevent trivial defensive strategies through counter-mechanics
 
 ### Target Experience
-Players work together to defend a village within a confined space, managing resources, upgrading their gear, and protecting villagers while facing increasingly difficult waves of enemies.
+Players work together to defend a village within a confined space, utilizing vanilla Minecraft progression systems including villager trading, enchanting, farming, building defenses, and breeding villagers. Resource management focuses on mob drops rather than mining, creating a self-contained survival experience while facing increasingly difficult waves of enemies.
 
 ## 2. Game Mechanics
 
 ### Wave System
 
 #### Progressive Difficulty
-- Base difficulty multiplier: 1.5x per wave
-- Mob stats scale exponentially:
-  - Health: Base × 1.5^(wave_number)
-  - Damage: Base × 1.5^(wave_number)
+- Difficulty increases through higher mob counts and faster spawn rates
+- Mob health and damage remain at vanilla levels throughout all waves
+- Each wave has an increasing maximum mob count limit
+- Spawn rate increases with each wave number
 - Boss waves every 10 rounds featuring unique enemies
-- Wave completion requires elimination of all spawned mobs
+- Wave completion occurs when sunrise arrives OR maximum mob count is reached
+- At sunrise, ALL remaining mobs are automatically killed (burned/eliminated)
+- Mobs killed by sunrise mechanics DO NOT drop loot
+- Game ends immediately when ALL villagers are killed
 
 #### Player Count Scaling
 - Base mob count = 10 + (2 × number_of_players)
-- Mob health scales with player count: Base × (1 + 0.3 × number_of_players)
-- Resource drops scale proportionally to maintain balance
+- Maximum mob count increases with wave number
+- Spawn rate scales with both wave number and player count
+- Resource drops scale proportionally to player-killed mobs only
 
 #### Trickle-Spawn System
 - Mobs spawn in smaller groups rather than all at once
@@ -44,26 +49,47 @@ Players work together to defend a village within a confined space, managing reso
   - Zombies: Basic melee attackers
   - Skeletons: Ranged attackers
   - Spiders: Fast-moving flankers
-  - Creepers: Explosive threats
+  - Creepers: Explosive threats with obstruction-triggered detonation
 - Elite Variants (Every 5th wave):
   - Enhanced versions with special abilities
   - Unique visual identifiers
+  - Same health/damage as standard variants
 - Boss Mobs (Every 10th wave):
   - Custom-named with unique abilities
-  - Higher health pools
+  - Vanilla health pools
   - Special drop tables
+  - Flying mobs: Phantoms, Blazes, Ghasts capable of targeting elevated positions
 
 #### Enhanced Pathfinding Behavior
-- Mobs actively target both players and villagers
+- Mobs have significantly larger aggro range for detecting targets
+- Mobs actively pathfind to both players and villagers from greater distances  
 - Prioritize targeting based on proximity and threat level
 - Group coordination for elite mobs
 - Tactical retreats for ranged units
+- Special Creeper Behavior: When pathfinding is obstructed to target player or villager, creeper will explode immediately
+
+#### Anti-Exploit Mechanics
+- Buried/Barricaded Villagers: Creepers specifically target and explode when close to villagers blocked in holes or buildings
+- Elevated Villagers: Flying boss mobs (Phantoms, Blazes, Ghasts) can target villagers placed at build height
+- These mechanics prevent trivial defensive strategies that remove challenge from the game
+
+#### Boss Wave Environmental Hazards
+- Lightning strikes occur randomly during boss waves (every 10th wave)
+- Lightning effects:
+  - Converts villagers into witches (removing them from protection objectives)
+  - Transforms creepers into charged creepers (increased explosion damage)
+  - Damages players caught in lightning strikes
+- Lightning adds additional challenge and unpredictability to boss encounters
 
 #### Special Drop Tables
-- Common drops: XP orbs, basic materials
-- Elite drops: Enchanted items, rare materials
-- Boss drops: Guaranteed high-value items
-- Progressive drop quality based on wave number
+- Common drops: XP orbs, basic materials, food items (only from player-killed mobs)
+- Rare drops: Mining materials (emeralds, diamonds, obsidian), adventure items (potions, leather, paper)
+- Equipment drops: Armor pieces, weapons, tools with varying durability and enchantments
+- Elite drops: Higher-tier enchanted items, rare materials (only from player-killed mobs)
+- Boss drops: Guaranteed high-value items including rare enchanted gear (only from player-killed mobs)
+- Drop quality and rarity increase progressively with wave number
+- Mobs killed by sunrise mechanics provide NO drops or XP
+- Mob drops designed to reduce mining necessity while maintaining resource variety
 
 ### Village System
 
@@ -84,34 +110,74 @@ Players work together to defend a village within a confined space, managing reso
 - Cannot leave barrier area
 - Panic state triggers running from nearby mobs
 - Health regeneration between waves
+- Full vanilla trading mechanics preserved
+- Breeding capabilities maintained for population growth
+- Trade progression unlocked through wave advancement
 
 ### Economy & Progression
 
+#### Vanilla Minecraft Integration
+- Full compatibility with vanilla enchanting mechanics
+- Standard villager trading system with profession-based trades
+- Farming and food production capabilities
+- Villager breeding for population expansion
+- Building and defensive construction options
+- Crafting system utilizing mob-dropped materials
+
 #### Trading System
-- Standard villager trading mechanics
+- Standard villager trading mechanics with all professions
 - Enhanced trade options unlocked by wave progression
 - Special trades from rescued villagers
 - Trading post protection zones
+- XP acquisition through trading for enchanting progression
+
+#### Resource Acquisition Methods
+- Primary: Mob drops (weapons, armor, materials, rare items)
+- Secondary: Farming (food, breeding materials, basic resources)
+- Tertiary: Trading with villagers (XP, specialized items)
+- Limited: Mining (possible but not necessary for progression)
+- Enhanced mob drops replace traditional mining/adventuring rewards
 
 #### Item Acquisition
-- Mob drops (weapons, armor, materials)
-- XP from kills and wave completion
+- Mob drops: Enhanced loot tables including mining materials (emeralds, diamonds, obsidian)
+- Adventure items: Potions, leather, paper, enchanted books
+- Equipment: Armor, weapons, tools with progressive quality
+- XP from kills, wave completion, and villager trading
 - Special rewards from boss waves
-- Trading with villagers
+- Farming: Food, breeding materials, basic crafting components
 
 #### Equipment Progression
-- Standard Minecraft enchanting system
-- Materials gathered from mob drops
-- Strategic choices between personal gear and village improvements
-- Enhanced crafting recipes unlocked by progression
+- Standard Minecraft enchanting system using XP from multiple sources
+- Materials gathered from enhanced mob drops rather than mining
+- Strategic choices between personal gear, village improvements, and defenses
+- Enhanced crafting recipes utilizing rare mob-dropped materials
+- Building defensive structures using dropped and farmed materials
+
+### Scoring System
+
+#### Performance Tracking
+- Player-killed mob count: Primary scoring metric tracking mobs eliminated by players
+- Player death count: Negative scoring factor tracking player casualties
+- Wave progression: Bonus points for reaching higher waves
+- Villager survival rate: Bonus multiplier based on villagers protected
+- Sunrise kills are excluded from scoring (no points awarded)
+
+#### Score Calculation
+- Base points per player-killed mob (varies by mob type)
+- Death penalty: Points deducted per player death
+- Wave completion bonus: Escalating rewards for higher waves reached
+- Villager protection multiplier: Score multiplied by percentage of villagers alive
 
 ## 3. Technical Requirements
 
 ### Core Systems
 1. Wave Management System
-   - Wave state tracking
-   - Mob spawning coordination
-   - Victory/defeat conditions
+   - Wave state tracking with day/night cycle integration
+   - Mob spawning coordination with increasing spawn rates
+   - Maximum mob count tracking per wave
+   - Sunrise mob elimination mechanics
+   - Victory/defeat conditions based on time, mob limits, or villager survival
+   - Game termination when all villagers are killed
    - Player respawn handling
 
 2. Boundary System
@@ -121,26 +187,63 @@ Players work together to defend a village within a confined space, managing reso
    - Spawn point management
 
 3. Mob Enhancement System
-   - Custom mob properties
-   - AI modifications
-   - Drop table management
+   - Enhanced aggro range implementation
+   - Advanced pathfinding AI modifications
+   - Creeper obstruction detection and explosion triggers
+   - Anti-exploit targeting system for buried/barricaded villagers
+   - Flying mob AI for targeting elevated positions
+   - Enhanced drop table management with rare item integration
+   - Progressive drop quality scaling with wave difficulty
+   - Drop differentiation (player-killed vs sunrise-killed)
 
-4. Player Management
-   - Death/respawn handling
-   - Progress tracking
+4. Environmental Hazard System
+   - Lightning generation during boss waves
+   - Villager-to-witch transformation mechanics
+   - Creeper-to-charged-creeper conversion
+   - Player lightning damage system
+
+5. Player Management
+   - Death/respawn handling with death count tracking
+   - Progress tracking and scoring system
    - Inventory management between waves
+   - XP and enchanting progression tracking
 
-5. Villager Enhancement
-   - Custom AI implementation
-   - Trade management
+6. Villager Enhancement
+   - Custom AI implementation with vanilla trading preservation
+   - Breeding mechanics and population management
+   - Trade progression unlocked by wave advancement
    - Protection mechanics
+   - Villager death tracking for game termination conditions
+
+6. Scoring and Statistics System
+   - Player-killed mob count tracking
+   - Player death count tracking
+   - Wave progression statistics
+   - Villager survival rate calculation
+   - Score calculation and leaderboards
+
+7. Vanilla Integration Systems
+   - Enhanced mob drop tables with rare item generation
+   - Farming and breeding mechanics preservation
+   - Enchanting system integration with multiple XP sources
+   - Building and crafting system support
+   - Villager profession and trading system maintenance
 
 ### Important Considerations
-- Performance optimization for mob AI
+- Performance optimization for enhanced mob AI and larger aggro ranges
 - Scalability for multiple concurrent games
-- Data persistence for long-term progression
+- Accurate day/night cycle tracking for sunrise mechanics
+- Efficient mob kill tracking and differentiation (player vs sunrise kills)
+- Balanced rare drop rates to maintain gameplay flow without trivializing progression
+- Preservation of vanilla mechanics while enhancing mob behavior
+- Anti-exploit system implementation without breaking legitimate defensive strategies
+- Lightning strike timing and frequency balance during boss waves
+- Entity transformation tracking (villager→witch, creeper→charged creeper)
+- Game termination detection and handling when all villagers are eliminated
+- Data persistence for scoring and long-term progression
 - Proper cleanup on plugin disable
-- Efficient entity tracking
+- Efficient entity tracking with larger detection ranges
+- Integration with vanilla villager AI and trading without conflicts
 
 ### Plugin Dependencies
 - Spigot/Paper API (1.21+)
