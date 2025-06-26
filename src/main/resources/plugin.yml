@@ -2,3 +2,25 @@ name: Bastion
 version: '1.0-SNAPSHOT'
 main: city.emerald.bastion.Bastion
 api-version: '1.21'
+description: A wave-based village defense plugin where players protect villagers from increasingly challenging hostile mobs
+author: EmeraldCity
+
+commands:
+  bastion:
+    description: Main command for Bastion plugin
+    usage: /<command> [start|stop|waves|info]
+    aliases: [bst]
+
+permissions:
+  bastion.admin:
+    description: Allows access to all Bastion admin commands
+    default: "op"
+  bastion.play:
+    description: Allows players to participate in village defense
+    default: "op"
+  bastion.start:
+    description: Allows starting defense waves
+    default: "op"
+  bastion.stop:
+    description: Allows stopping ongoing waves
+    default: "op"

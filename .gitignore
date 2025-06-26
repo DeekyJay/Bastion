@@ -120,3 +120,5 @@ runs/
 
 # Ignore Minecraft server folder.
 server/
+config/
+logs/

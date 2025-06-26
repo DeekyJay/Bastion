@@ -1,0 +1,206 @@
+package city.emerald.bastion;
+
+import city.emerald.bastion.economy.UpgradeManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Villager;
+
+public class VillageManager {
+
+  private final Bastion plugin;
+  private UpgradeManager upgradeManager;
+  private Location villageCenter;
+  private List<Villager> registeredVillagers;
+  private boolean isProtected;
+
+  public VillageManager(Bastion plugin) {
+    this.plugin = plugin;
+    this.registeredVillagers = new ArrayList<>();
+    this.isProtected = false;
+  }
+
+  public void setUpgradeManager(UpgradeManager upgradeManager) {
+    this.upgradeManager = upgradeManager;
+  }
+
+  /**
+   * Finds and selects a valid village for the game.
+   * @param world The world to search in
+   * @return true if a valid village was found and selected
+   */
+  public boolean findAndSelectVillage(World world) {
+    // Search for villagers in loaded chunks
+    for (Entity entity : world.getEntities()) {
+      if (entity.getType() == EntityType.VILLAGER) {
+        Villager villager = (Villager) entity;
+        if (isValidVillageLocation(villager.getLocation())) {
+          Location spawnLoc = findSafeLocation(villager.getLocation());
+          this.villageCenter = spawnLoc;
+          world.setSpawnLocation(spawnLoc);
+          registerVillagersInRange(world);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if a location is valid for a village center.
+   * @param location The location to check
+   * @return true if the location is valid
+   */
+  private boolean isValidVillageLocation(Location location) {
+    // Check for minimum required space (100x100)
+    int radius = 50; // 100x100 area means 50 block radius
+    World world = location.getWorld();
+
+    // Check if area has enough solid ground
+    int groundBlocks = 0;
+    int requiredGroundBlocks = (radius * 2) * (radius * 2) / 4; // 25% of area should be valid ground
+
+    for (int x = -radius; x <= radius; x += 10) {
+      for (int z = -radius; z <= radius; z += 10) {
+        Location check = location.clone().add(x, 0, z);
+        check.setY(world.getHighestBlockYAt(check));
+        if (check.getBlock().getType().isSolid()) {
+          groundBlocks += 100; // Each sample represents 10x10 blocks
+        }
+      }
+    }
+
+    return groundBlocks >= requiredGroundBlocks;
+  }
+
+  /**
+   * Registers all villagers within the barrier range.
+   * @param world The world to search in
+   */
+  private void registerVillagersInRange(World world) {
+    registeredVillagers.clear();
+    int radius = 50;
+
+    for (Entity entity : world.getEntities()) {
+      if (entity.getType() == EntityType.VILLAGER) {
+        if (isInRange(entity.getLocation(), villageCenter, radius)) {
+          Villager villager = (Villager) entity;
+          registeredVillagers.add(villager);
+
+          // Apply health upgrade if available
+          int healthLevel = upgradeManager.getVillageUpgradeLevel(
+            UpgradeManager.UpgradeType.VILLAGER_HEALTH
+          );
+          if (healthLevel > 0) {
+            villager.setMaxHealth(20 + (healthLevel * 5));
+            villager.setHealth(villager.getMaxHealth());
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if a location is within range of the center.
+   */
+  private boolean isInRange(Location loc1, Location loc2, int radius) {
+    return loc1.distanceSquared(loc2) <= radius * radius;
+  }
+
+  /**
+   * Gets the village center location.
+   * @return Optional containing the village center location if set
+   */
+  public Optional<Location> getVillageCenter() {
+    return Optional.ofNullable(villageCenter);
+  }
+
+  /**
+   * Gets all registered villagers in the protected area.
+   * @return List of registered villagers
+   */
+  public List<Villager> getRegisteredVillagers() {
+    return new ArrayList<>(registeredVillagers);
+  }
+
+  /**
+   * Sets the protection state of the village.
+   * @param protected_ true to enable protection, false to disable
+   */
+  public void setProtected(boolean protected_) {
+    this.isProtected = protected_;
+  }
+
+  /**
+   * Checks if the village is currently protected.
+   * @return true if the village is protected
+   */
+  public boolean isProtected() {
+    return isProtected;
+  }
+
+  /**
+   * Cleans up the village manager.
+   */
+  public void cleanup() {
+    // Reset villager health before clearing
+    for (Villager villager : registeredVillagers) {
+      villager.setMaxHealth(20);
+      villager.setHealth(20);
+    }
+    registeredVillagers.clear();
+    villageCenter = null;
+    isProtected = false;
+  }
+
+  /**
+   * Heal villagers based on regeneration upgrade
+   */
+  public void applyVillagerRegeneration() {
+    int regenLevel = upgradeManager.getVillageUpgradeLevel(
+      UpgradeManager.UpgradeType.VILLAGER_REGEN
+    );
+    if (regenLevel > 0) {
+      double healAmount = regenLevel * 0.5; // 0.5 hearts per level
+      for (Villager villager : registeredVillagers) {
+        double newHealth = Math.min(
+          villager.getMaxHealth(),
+          villager.getHealth() + healAmount
+        );
+        villager.setHealth(newHealth);
+      }
+    }
+  }
+
+  /**
+   * Apply damage reduction from barrier upgrade
+   * @return The amount of damage to reduce
+   */
+  public double getBarrierDamageReduction() {
+    int barrierLevel = upgradeManager.getVillageUpgradeLevel(
+      UpgradeManager.UpgradeType.BARRIER_STRENGTH
+    );
+    return barrierLevel * 0.1; // 10% damage reduction per level
+  }
+
+  /**
+   * Finds a safe location near the specified center point.
+   * @param center The center location
+   * @return A safe location for teleportation
+   */
+  private Location findSafeLocation(Location center) {
+    World world = center.getWorld();
+    Location safe = center.clone();
+
+    // Find highest solid block
+    safe.setY(world.getHighestBlockYAt(safe));
+    // Move up one block to ensure player stands on surface
+    safe.add(0, 1, 0);
+
+    return safe;
+  }
+}

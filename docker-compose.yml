@@ -1,25 +1,48 @@
 services:
-  test-mc-server:
-    image: itzg/minecraft-server:latest
-    container_name: test-mc-server
+  build:
+    image: gradle:8-jdk21
+    volumes:
+      - .:/home/gradle/project
+    working_dir: /home/gradle/project
+    command: gradle build
+
+  mc-dev:
+    image: itzg/minecraft-server:java21
+    depends_on:
+      - build
+    container_name: bastion-dev
     ports:
-      - 25565:25565
+      - "25565:25565"
+      - "5005:5005" # Debug port
     environment:
-      UUID: 1000
-      GUID: 1000
       EULA: "true"
       TYPE: "PAPER"
       VERSION: "1.21.3"
-      # PAPER_BUILD: "63"
-      VIEW_DISTANCE: 20
       MEMORY: "2G"
-      SERVER_NAME: "Test Server"
-      MOTD: "Test Server"
-      VANILLATWEAKS_SHARECODE: "AJKVqh"
+      SERVER_NAME: "Bastion Dev"
+      MOTD: "Bastion Development Server"
+      DEBUG_PORT: "5005"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "dev-password"
+      OVERRIDE_SERVER_PROPERTIES: "true"
+      ENABLE_COMMAND_BLOCK: "true"
+      SPAWN_PROTECTION: "0"
+      VIEW_DISTANCE: "10"
+      SIMULATION_DISTANCE: "10"
+      GENERATE_STRUCTURES: "true"
+      ALLOW_NETHER: "true"
+      MODE: "survival"
+      DIFFICULTY: "normal"
+      MAX_PLAYERS: "10"
+      INIT_MEMORY: "1G"
+      MAX_MEMORY: "2G"
+      JVM_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      ENABLE_JMX: "true"
     tty: true
     stdin_open: true
     restart: unless-stopped
     volumes:
-      # attach a directory relative to the directory containing this compose file
       - "./server:/data"
       - "./build/libs:/data/plugins"
+      - "./config:/data/config"
+      - "./logs:/data/logs"
