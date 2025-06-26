@@ -21,7 +21,11 @@ wave:
 village:
   # Barrier dimensions (in blocks)
   barrier:
-    size: 200
+    radius: 80  # Changed from size: 200 to radius: 80 (160x160 area)
+    height: 256
+    # Barrier visualization settings
+    dome-shape: true  # Use 3D dome instead of cylindrical wall
+    show-underground: true  # Show particles below ground in air blocks
   # Villager settings
   villagers:
     health-multiplier: 2.0
@@ -44,7 +48,23 @@ economy:
 effects:
   barrier:
     visible: true
-    particle-density: 0.5
+    particle-density: 1.0  # Increased for better dome visibility
+    particle-spacing: 1  # Reduced spacing for denser barrier (was 2)
+    update-interval: 10  # Faster updates for smoother animation (was 20)
+
+    # Enhanced particle visibility settings
+    particle-size: 4.0  # Larger particles (default was 2.0)
+    particle-intensity: 3  # Number of particle effects per location
+    multiple-particle-types: true  # Use DUST + FLAME + ENCHANT + FIREWORK
+    particle-animation: true  # Enable pulsing/color animation effects
+
+    # Underground cave detection settings
+    max-underground-depth: 20  # How deep to check for air spaces
+    debug-mode: false  # Enable debug particles and logging
+
+    # Color settings (R,G,B format)
+    primary-color: "0,255,255"    # Bright cyan
+    secondary-color: "255,255,0"  # Bright yellow for animation
   spawn:
     warning-sound: true
     warning-particles: true

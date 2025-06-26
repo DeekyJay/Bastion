@@ -15,15 +15,16 @@
 
 - **VillageManager**: Manages village-related functionality
   - Tracks registered villagers and their states
-  - Handles village center location and boundaries (100x100 area)
+  - Handles village center location and configurable dome boundaries
   - Coordinates village protection mechanics
   - Sets world spawn point at village center
 
 - **BarrierManager**: Manages the protective barrier system
-  - Creates visible particle barrier (100x100 area)
+  - Creates 3D dome particle barrier (configurable radius dome area, default 80-block radius)
   - Prevents natural mob spawning within barrier
   - Clears friendly mobs to optimize hostile mob spawning
-  - Enforces player movement restrictions
+  - Enforces player movement restrictions with spherical collision detection
+  - Underground particle visibility for complete dome visualization
 
 - **MobSpawnManager**: Controls custom mob spawning
   - Forces mob spawning regardless of light levels
@@ -83,7 +84,7 @@ graph TB
    - Mob lifetime: 5 minutes (auto-respawn for better pathfinding)
 
 3. **Mob Spawning System**
-   - Forced spawning at ground level within 100x100 barrier
+   - Forced spawning at ground level within configurable dome barrier
    - Zombies immune to sunlight damage
    - Natural mob spawning disabled in barrier area
    - Friendly mobs cleared to optimize hostile mob cap usage
@@ -149,7 +150,9 @@ wave:
 
 village:
   barrier:
-    size: 100  # 100x100 block area
+    radius: 80  # dome radius in blocks
+    dome-shape: true  # true for 3D dome, false for cylindrical
+    show-underground: true  # show particles underground for visibility
     particle-frequency: 2  # degrees between particles
     particle-height-spacing: 4  # blocks between vertical particles
   villagers:
@@ -237,7 +240,7 @@ All commands are available to all players by default (permission level: "not op"
 
 ### Known Limitations
 1. **Game Boundaries**
-   - Fixed 100×100 play area
+   - Configurable dome play area (default 160×160)
    - Single village center per game
    - Maximum 8 players per session
 
@@ -248,8 +251,16 @@ All commands are available to all players by default (permission level: "not op"
    - Mob spawning requires ground-level surface access
 
 ### Recent Improvements
-1. **Barrier System Enhancements**
-   - 100x100 barrier area with improved visibility
+1. **Dome Barrier System Transformation**
+   - Complete transformation from simple cylindrical wall to configurable 3D dome
+   - Configurable radius system (default 80 blocks) with spherical collision detection
+   - Enhanced particle visibility with underground detection for complete dome visualization
+   - Mathematical accuracy in 3D collision detection using distance calculations
+   - Performance optimization for larger particle counts
+   - Backward compatibility with cylindrical mode option
+   - Full configurability through config.yml settings
+
+2. **Barrier System Technical Enhancements**
    - Prevention of natural mob spawning within barrier
    - Automatic clearing of friendly mobs for better mob cap management
    - Enhanced particle effects for better barrier visualization
