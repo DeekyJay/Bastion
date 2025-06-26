@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "redhat.java",
+    "vscjava.vscode-gradle",
+    "redhat.vscode-yaml",
+    "ms-azuretools.vscode-docker",
+    "vscjava.vscode-java-pack",
+    "oracle.oracle-java",
+    "vscjava.vscode-java-debug"
+  ]
+}
