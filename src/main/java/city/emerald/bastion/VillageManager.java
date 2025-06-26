@@ -61,10 +61,7 @@ public class VillageManager {
    * @return true if the location is valid
    */
   private boolean isValidVillageLocation(Location location) {
-    // Get barrier radius from config, fallback to 80 if barrier manager not set
-    int radius = barrierManager != null
-      ? barrierManager.getBarrierRadius()
-      : plugin.getConfig().getInt("village.barrier.radius", 80);
+    int radius = getBarrierRadius();
     World world = location.getWorld();
 
     // Check if area has enough solid ground
@@ -212,5 +209,15 @@ public class VillageManager {
     safe.add(0, 1, 0);
 
     return safe;
+  }
+
+  /**
+   * Retrieves the barrier radius from the BarrierManager or config.
+   * @return the barrier radius
+   */
+  private int getBarrierRadius() {
+    return barrierManager != null
+      ? barrierManager.getBarrierRadius()
+      : plugin.getConfig().getInt("village.barrier.radius", 80);
   }
 }

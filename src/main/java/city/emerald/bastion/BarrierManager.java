@@ -419,85 +419,104 @@ public class BarrierManager implements Listener {
 
     // Spawn multiple particle types for better visibility
     for (int i = 0; i < particleIntensity; i++) {
-      // Primary dust particles
-      world.spawnParticle(
-        Particle.DUST,
-        location.getX() + (Math.random() - 0.5) * 0.3,
-        location.getY() + (Math.random() - 0.5) * 0.3,
-        location.getZ() + (Math.random() - 0.5) * 0.3,
-        1,
-        0,
-        0,
-        0,
-        new DustOptions(
-          currentPrimaryColor,
-          particleSize * (float) particleDensity
-        )
-      );
-
+      spawnPrimaryDustParticle(world, location, currentPrimaryColor);
       if (useMultipleParticleTypes) {
-        // Add flame particles for extra visibility
-        if (i == 0) {
-          world.spawnParticle(
-            Particle.FLAME,
-            location.getX(),
-            location.getY(),
-            location.getZ(),
-            1,
-            0.1,
-            0.1,
-            0.1,
-            0.01
-          );
-        }
-
-        // Add enchantment table particles for magical effect
-        if (i == 1 && particleIntensity > 1) {
-          world.spawnParticle(
-            Particle.ENCHANT,
-            location.getX(),
-            location.getY() + 0.5,
-            location.getZ(),
-            2,
-            0.2,
-            0.2,
-            0.2,
-            0.5
-          );
-        }
-
-        // Add firework spark for high intensity
-        if (i == 2 && particleIntensity > 2) {
-          world.spawnParticle(
-            Particle.FIREWORK,
-            location.getX(),
-            location.getY(),
-            location.getZ(),
-            1,
-            0.1,
-            0.1,
-            0.1,
-            0.1
-          );
-        }
+        spawnAdditionalParticles(world, location, i);
       }
     }
 
     // Debug particle spawning
     if (debugMode) {
-      // Spawn a distinct debug particle
+      spawnDebugParticle(world, location);
+    }
+  }
+
+  /**
+   * Spawns the primary dust particle at the given location.
+   */
+  private void spawnPrimaryDustParticle(
+    World world,
+    Location location,
+    Color color
+  ) {
+    world.spawnParticle(
+      Particle.DUST,
+      location.getX() + (Math.random() - 0.5) * 0.3,
+      location.getY() + (Math.random() - 0.5) * 0.3,
+      location.getZ() + (Math.random() - 0.5) * 0.3,
+      1,
+      0,
+      0,
+      0,
+      new DustOptions(color, particleSize * (float) particleDensity)
+    );
+  }
+
+  /**
+   * Spawns additional particle types for enhanced effects.
+   */
+  private void spawnAdditionalParticles(World world, Location location, int i) {
+    // Add flame particles for extra visibility
+    if (i == 0) {
       world.spawnParticle(
-        Particle.DUST,
+        Particle.FLAME,
         location.getX(),
-        location.getY() + 1,
+        location.getY(),
         location.getZ(),
         1,
-        0,
-        0,
-        0,
-        new DustOptions(Color.fromRGB(255, 255, 255), 1.0f)
+        0.1,
+        0.1,
+        0.1,
+        0.01
       );
     }
+
+    // Add enchantment table particles for magical effect
+    if (i == 1 && particleIntensity > 1) {
+      world.spawnParticle(
+        Particle.ENCHANT,
+        location.getX(),
+        location.getY() + 0.5,
+        location.getZ(),
+        2,
+        0.2,
+        0.2,
+        0.2,
+        0.5
+      );
+    }
+
+    // Add firework spark for high intensity
+    if (i == 2 && particleIntensity > 2) {
+      world.spawnParticle(
+        Particle.FIREWORK,
+        location.getX(),
+        location.getY(),
+        location.getZ(),
+        1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      );
+    }
+  }
+
+  /**
+   * Spawns a debug particle at the given location.
+   */
+  private void spawnDebugParticle(World world, Location location) {
+    world.spawnParticle(
+      Particle.DUST,
+      location.getX(),
+      location.getY() + 1,
+      location.getZ(),
+      1,
+      0,
+      0,
+      0,
+      new DustOptions(Color.fromRGB(255, 255, 255), 1.0f)
+    );
   }
 
   /**
@@ -627,7 +646,11 @@ public class BarrierManager implements Listener {
     }
 
     // Check vertical bounds
-    return location.getY() >= 0 && location.getY() <= barrierHeight;
+    World world = center.getWorld();
+    return (
+      location.getY() >= world.getMinHeight() &&
+      location.getY() <= barrierHeight
+    );
   }
 
   /**
