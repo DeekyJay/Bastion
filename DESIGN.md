@@ -28,6 +28,7 @@ Players work together to defend a village within a confined space, utilizing van
 - Wave completion occurs when sunrise arrives OR maximum mob count is reached
 - At sunrise, ALL remaining mobs are automatically killed (burned/eliminated)
 - Mobs killed by sunrise mechanics DO NOT drop loot
+- Sunrise wave completion counts as UNSUCCESSFUL - wave must be repeated without incrementing wave count
 - Game ends immediately when ALL villagers are killed
 
 #### Player Count Scaling
@@ -71,20 +72,26 @@ Players work together to defend a village within a confined space, utilizing van
 #### Anti-Exploit Mechanics
 - Buried/Barricaded Villagers: Creepers specifically target and explode when close to villagers blocked in holes or buildings
 - Elevated Villagers: Flying boss mobs (Phantoms, Blazes, Ghasts) can target villagers placed at build height
+- Unreachable Villager Detection: When villagers cannot be reached by normal pathfinding, spawn probabilities increase:
+  - Creeper spawn rate increases significantly
+  - Lightning strike frequency increases during boss waves
+  - Flying mob spawn rate increases
 - These mechanics prevent trivial defensive strategies that remove challenge from the game
 
 #### Boss Wave Environmental Hazards
 - Lightning strikes occur randomly during boss waves (every 10th wave)
-- Lightning effects:
-  - Converts villagers into witches (removing them from protection objectives)
-  - Transforms creepers into charged creepers (increased explosion damage)
-  - Damages players caught in lightning strikes
+- Lightning strikes utilize vanilla Minecraft lightning mechanics:
+  - Converts villagers into witches via natural lightning strike (removing them from protection objectives)
+  - Transforms creepers into charged creepers via natural lightning strike (increased explosion damage)
+  - Damages players caught in natural lightning strikes (standard lightning damage)
+- Lightning targeting system ensures strikes hit players, villagers, and creepers within the barrier
 - Lightning adds additional challenge and unpredictability to boss encounters
 
 #### Special Drop Tables
 - Common drops: XP orbs, basic materials, food items (only from player-killed mobs)
 - Rare drops: Mining materials (emeralds, diamonds, obsidian), adventure items (potions, leather, paper)
 - Equipment drops: Armor pieces, weapons, tools with varying durability and enchantments
+- Crafting drops: items needed for crafting normally obtained in the Nether or through mining (redstone, nether wart, diamonds)
 - Elite drops: Higher-tier enchanted items, rare materials (only from player-killed mobs)
 - Boss drops: Guaranteed high-value items including rare enchanted gear (only from player-killed mobs)
 - Drop quality and rarity increase progressively with wave number
@@ -111,7 +118,7 @@ Players work together to defend a village within a confined space, utilizing van
 - Panic state triggers running from nearby mobs
 - Health regeneration between waves
 - Full vanilla trading mechanics preserved
-- Breeding capabilities maintained for population growth
+- Vanilla breeding capabilities utilized (no custom breeding mechanics required)
 - Trade progression unlocked through wave advancement
 
 ### Economy & Progression
@@ -120,7 +127,7 @@ Players work together to defend a village within a confined space, utilizing van
 - Full compatibility with vanilla enchanting mechanics
 - Standard villager trading system with profession-based trades
 - Farming and food production capabilities
-- Villager breeding for population expansion
+- Vanilla villager breeding system (no custom modifications needed)
 - Building and defensive construction options
 - Crafting system utilizing mob-dropped materials
 
@@ -168,6 +175,15 @@ Players work together to defend a village within a confined space, utilizing van
 - Wave completion bonus: Escalating rewards for higher waves reached
 - Villager protection multiplier: Score multiplied by percentage of villagers alive
 
+#### Game Over Display
+- Game ends when all villagers are killed
+- Final statistics displayed for all players:
+  - Completed wave count (successful waves only)
+  - Individual kill/death counts per player
+  - Fun stats for each player. Using the vanilla stats, find the highest stat for each player that is also higher that the other players. There will be one distinct stat for each player, where they had 'the most'. Then find the player with the _lowest_ value for each of those stats. E.g. "most blocks placed by Foo, least blocks placed by Bar"
+  - Total score and ranking
+  - Villager survival statistics
+
 ## 3. Technical Requirements
 
 ### Core Systems
@@ -175,9 +191,10 @@ Players work together to defend a village within a confined space, utilizing van
    - Wave state tracking with day/night cycle integration
    - Mob spawning coordination with increasing spawn rates
    - Maximum mob count tracking per wave
-   - Sunrise mob elimination mechanics
+   - Sunrise mob elimination mechanics (unsuccessful wave completion)
+   - Wave repetition system for sunrise-failed waves
    - Victory/defeat conditions based on time, mob limits, or villager survival
-   - Game termination when all villagers are killed
+   - Game termination when all villagers are killed with final statistics display
    - Player respawn handling
 
 2. Boundary System
@@ -192,15 +209,16 @@ Players work together to defend a village within a confined space, utilizing van
    - Creeper obstruction detection and explosion triggers
    - Anti-exploit targeting system for buried/barricaded villagers
    - Flying mob AI for targeting elevated positions
+   - Unreachable villager detection system
+   - Dynamic spawn probability adjustment (creepers, lightning, flying mobs)
    - Enhanced drop table management with rare item integration
    - Progressive drop quality scaling with wave difficulty
    - Drop differentiation (player-killed vs sunrise-killed)
 
 4. Environmental Hazard System
    - Lightning generation during boss waves
-   - Villager-to-witch transformation mechanics
-   - Creeper-to-charged-creeper conversion
-   - Player lightning damage system
+   - Lightning targeting system for players, villagers, and creepers
+   - Integration with vanilla lightning transformation mechanics
 
 5. Player Management
    - Death/respawn handling with death count tracking
@@ -238,7 +256,8 @@ Players work together to defend a village within a confined space, utilizing van
 - Preservation of vanilla mechanics while enhancing mob behavior
 - Anti-exploit system implementation without breaking legitimate defensive strategies
 - Lightning strike timing and frequency balance during boss waves
-- Entity transformation tracking (villager→witch, creeper→charged creeper)
+- Lightning targeting system to ensure proper entity selection
+- Vanilla lightning effect integration and tracking
 - Game termination detection and handling when all villagers are eliminated
 - Data persistence for scoring and long-term progression
 - Proper cleanup on plugin disable
