@@ -1,17 +1,10 @@
 package city.emerald.bastion;
 
-import city.emerald.bastion.economy.LootManager;
-import city.emerald.bastion.economy.TradeManager;
-import city.emerald.bastion.economy.UpgradeManager;
-import city.emerald.bastion.game.GameStateManager;
-import city.emerald.bastion.game.StatsManager;
-import city.emerald.bastion.game.UIManager;
-import city.emerald.bastion.wave.MobAI;
-import city.emerald.bastion.wave.MobSpawnManager;
-import city.emerald.bastion.wave.WaveManager;
 import java.util.logging.Logger;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -24,8 +17,17 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import city.emerald.bastion.economy.LootManager;
+import city.emerald.bastion.economy.TradeManager;
+import city.emerald.bastion.economy.UpgradeManager;
+import city.emerald.bastion.game.GameStateManager;
+import city.emerald.bastion.game.StatsManager;
+import city.emerald.bastion.game.UIManager;
+import city.emerald.bastion.wave.MobAI;
+import city.emerald.bastion.wave.MobSpawnManager;
+import city.emerald.bastion.wave.WaveManager;
 
 public final class Bastion extends JavaPlugin implements Listener {
 
@@ -83,6 +85,11 @@ public final class Bastion extends JavaPlugin implements Listener {
     Bukkit.getPluginManager().registerEvents(this, this);
 
     logger.info("Bastion plugin enabled successfully!");
+  }
+
+  @EventHandler
+  public void onMobDeath(EntityDeathEvent event) {
+    lootManager.handleMobDeath(event);
   }
 
   @Override

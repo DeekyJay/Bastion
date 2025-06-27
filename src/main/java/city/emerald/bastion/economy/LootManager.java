@@ -1,13 +1,20 @@
 package city.emerald.bastion.economy;
 
-import city.emerald.bastion.Bastion;
-import city.emerald.bastion.wave.WaveManager;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
+
+import city.emerald.bastion.Bastion;
+import city.emerald.bastion.wave.WaveManager;
 
 public class LootManager {
 
@@ -15,46 +22,59 @@ public class LootManager {
   private final WaveManager waveManager;
   private final Random random;
 
-  // Drop tables for different mob types
-  private static final Map<EntityType, Map<Material, Double>> MOB_DROP_TABLES = new HashMap<>();
-  private static final Map<EntityType, Map<Material, Double>> ELITE_DROP_TABLES = new HashMap<>();
-  private static final Map<Material, Double> BOSS_DROP_TABLE = new HashMap<>();
+  // Helper class for loot table entries
+  private static class LootTableEntry {
+    final Material material;
+    final double probability;
+    final int maxAmount;
+
+    LootTableEntry(Material material, double probability, int maxAmount) {
+      this.material = material;
+      this.probability = probability;
+      this.maxAmount = maxAmount;
+    }
+  }
+
+  // New loot tables using LootTableEntry helper class
+  // The items in these tables are in-addition to the default drops
+  // Common drops are always available, bonus drops are rarer
+  private static final Map<EntityType, List<LootTableEntry>> COMMON_LOOT_TABLE = new HashMap<>();
+  private static final Map<EntityType, List<LootTableEntry>> BONUS_LOOT_TABLE = new HashMap<>();
 
   static {
-    // Basic mob drops
-    Map<Material, Double> zombieDrops = new HashMap<>();
-    zombieDrops.put(Material.ROTTEN_FLESH, 0.8);
-    zombieDrops.put(Material.EMERALD, 0.1);
-    zombieDrops.put(Material.IRON_INGOT, 0.05);
+    // Common Loot
+    COMMON_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
+      new LootTableEntry(Material.IRON_NUGGET, 0.50, 3), // 50% chance for 1-3 iron nuggets
+      new LootTableEntry(Material.COAL, 0.25, 2)         // 25% chance for 1-2 coal
+    ));
+    COMMON_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
+      new LootTableEntry(Material.ARROW, 0.80, 5),      // 80% chance for 1-5 arrows
+      new LootTableEntry(Material.GOLD_NUGGET, 0.10, 2)  // 10% chance for 1-2 gold nuggets
+    ));
+    COMMON_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
+      new LootTableEntry(Material.STRING, 0.75, 3)       // 75% chance for 1-3 string
+    ));
+    COMMON_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
+      new LootTableEntry(Material.GUNPOWDER, 0.90, 4)   // 90% chance for 1-4 gunpowder
+    ));
 
-    Map<Material, Double> skeletonDrops = new HashMap<>();
-    skeletonDrops.put(Material.BONE, 0.8);
-    skeletonDrops.put(Material.ARROW, 0.6);
-    skeletonDrops.put(Material.EMERALD, 0.1);
-    skeletonDrops.put(Material.BOW, 0.05);
-
-    MOB_DROP_TABLES.put(EntityType.ZOMBIE, zombieDrops);
-    MOB_DROP_TABLES.put(EntityType.SKELETON, skeletonDrops);
-
-    // Elite mob drops (higher value items)
-    Map<Material, Double> eliteZombieDrops = new HashMap<>();
-    eliteZombieDrops.put(Material.EMERALD_BLOCK, 0.3);
-    eliteZombieDrops.put(Material.DIAMOND, 0.1);
-    eliteZombieDrops.put(Material.ENCHANTED_GOLDEN_APPLE, 0.05);
-
-    Map<Material, Double> eliteSkeletonDrops = new HashMap<>();
-    eliteSkeletonDrops.put(Material.EMERALD_BLOCK, 0.3);
-    eliteSkeletonDrops.put(Material.DIAMOND, 0.1);
-    eliteSkeletonDrops.put(Material.ENCHANTED_BOOK, 0.15);
-
-    ELITE_DROP_TABLES.put(EntityType.ZOMBIE, eliteZombieDrops);
-    ELITE_DROP_TABLES.put(EntityType.SKELETON, eliteSkeletonDrops);
-
-    // Boss drops (guaranteed valuable items)
-    BOSS_DROP_TABLE.put(Material.EMERALD_BLOCK, 1.0);
-    BOSS_DROP_TABLE.put(Material.DIAMOND_BLOCK, 0.5);
-    BOSS_DROP_TABLE.put(Material.NETHERITE_INGOT, 0.3);
-    BOSS_DROP_TABLE.put(Material.ENCHANTED_GOLDEN_APPLE, 0.4);
+    // Bonus Loot (rarer items)
+    BONUS_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
+      new LootTableEntry(Material.IRON_INGOT, 0.10, 1),  // 10% chance for 1 iron ingot
+      new LootTableEntry(Material.GOLD_NUGGET, 0.05, 5)  // 5% chance for 1-5 gold nuggets
+    ));
+    BONUS_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
+      new LootTableEntry(Material.TIPPED_ARROW, 0.15, 2), // 15% chance for 1-2 tipped arrows
+      new LootTableEntry(Material.BONE_BLOCK, 0.05, 1)    // 5% chance for 1 bone block
+    ));
+    BONUS_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
+      new LootTableEntry(Material.COBWEB, 0.10, 2),       // 10% chance for 1-2 cobwebs
+      new LootTableEntry(Material.SPIDER_EYE, 0.20, 1)    // 20% chance for 1 spider eye
+    ));
+    BONUS_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
+      new LootTableEntry(Material.TNT, 0.05, 1),          // 5% chance for 1 TNT
+      new LootTableEntry(Material.DIAMOND, 0.01, 1)       // 1% chance for 1 diamond
+    ));
   }
 
   public LootManager(Bastion plugin, WaveManager waveManager) {
@@ -63,103 +83,60 @@ public class LootManager {
     this.random = new Random();
   }
 
+  public void handleMobDeath(EntityDeathEvent event) {
+    LivingEntity entity = event.getEntity();
+    EntityType entityType = entity.getType();
+
+    // For now, let's use a default multiplier and always check for bonus items.
+    // This can be customized later based on game state or other factors.
+    double multiplier = 1.0; 
+    boolean includeBonusItems = true;
+
+    List<ItemStack> customLoot = generateLoot(entityType, multiplier, includeBonusItems);
+    event.getDrops().addAll(customLoot);
+  }
+
   /**
-   * Generates and drops loot for a killed mob
-   * @param entity The killed mob
-   * @param isElite Whether the mob was an elite variant
-   * @param isBoss Whether the mob was a boss
+   * Generates a list of custom items to add to a mob's drops based on probability.
+   * @param entityType The type of the mob.
+   * @param multiplier A multiplier for the amount of loot.
+   * @param includeBonusItems Whether to include a chance for bonus loot.
+   * @return A list of ItemStacks to be added to the drops.
    */
-  public void generateLoot(
-    LivingEntity entity,
-    boolean isElite,
-    boolean isBoss
+  public List<ItemStack> generateLoot(
+    EntityType entityType,
+    double multiplier,
+    boolean includeBonusItems
   ) {
-    Map<Material, Double> dropTable;
+    List<ItemStack> loot = new ArrayList<>();
 
-    if (isBoss) {
-      dropTable = BOSS_DROP_TABLE;
-    } else if (isElite) {
-      dropTable =
-        ELITE_DROP_TABLES.getOrDefault(entity.getType(), new HashMap<>());
-    } else {
-      dropTable =
-        MOB_DROP_TABLES.getOrDefault(entity.getType(), new HashMap<>());
+    // Process a given loot table
+    processLootTable(loot, COMMON_LOOT_TABLE.get(entityType), multiplier);
+    
+    if (includeBonusItems) {
+      processLootTable(loot, BONUS_LOOT_TABLE.get(entityType), multiplier);
     }
 
-    // Apply wave scaling to drop rates
-    double waveMultiplier = 1.0 + (waveManager.getCurrentWave() * 0.1);
-
-    for (Map.Entry<Material, Double> entry : dropTable.entrySet()) {
-      double adjustedRate = entry.getValue() * waveMultiplier;
-      if (random.nextDouble() < adjustedRate) {
-        ItemStack item = createItem(entry.getKey(), isElite, isBoss);
-        entity.getWorld().dropItemNaturally(entity.getLocation(), item);
-      }
-    }
-
-    // Always drop some emeralds for boss kills
-    if (isBoss) {
-      int emeraldCount = 5 + random.nextInt(waveManager.getCurrentWave() * 2);
-      entity
-        .getWorld()
-        .dropItemNaturally(
-          entity.getLocation(),
-          new ItemStack(Material.EMERALD, emeraldCount)
-        );
-    }
+    return loot;
   }
 
-  /**
-   * Creates an item with appropriate enchantments based on mob type
-   */
-  private ItemStack createItem(
-    Material material,
-    boolean isElite,
-    boolean isBoss
-  ) {
-    ItemStack item = new ItemStack(material);
-
-    // Add enchantments for weapons/armor from elite/boss mobs
-    if ((isElite || isBoss) && isEnchantable(material)) {
-      int maxEnchants = isBoss ? 3 : 1;
-      addRandomEnchantments(item, maxEnchants);
+  private void processLootTable(List<ItemStack> loot, List<LootTableEntry> table, double multiplier) {
+    if (table == null) {
+      return;
     }
 
-    return item;
-  }
+    for (LootTableEntry entry : table) {
+      // Check if the item should be dropped based on probability
+      if (random.nextDouble() < entry.probability) {
+        // Determine a random quantity from 1 to maxAmount
+        int baseAmount = random.nextInt(entry.maxAmount) + 1;
+        
+        // Apply the multiplier and round to the nearest whole number
+        int finalAmount = (int) Math.round(baseAmount * multiplier);
 
-  /**
-   * Checks if a material can be enchanted
-   */
-  private boolean isEnchantable(Material material) {
-    return (
-      material.name().contains("SWORD") ||
-      material.name().contains("AXE") ||
-      material.name().contains("BOW") ||
-      material.name().contains("ARMOR") ||
-      material.name().contains("HELMET") ||
-      material.name().contains("CHESTPLATE") ||
-      material.name().contains("LEGGINGS") ||
-      material.name().contains("BOOTS")
-    );
-  }
-
-  /**
-   * Adds random enchantments to an item
-   */
-  private void addRandomEnchantments(ItemStack item, int maxEnchants) {
-    List<Enchantment> possibleEnchants = new ArrayList<>(
-      Arrays.asList(Enchantment.values())
-    );
-    Collections.shuffle(possibleEnchants);
-
-    int enchants = 0;
-    for (Enchantment enchant : possibleEnchants) {
-      if (enchants >= maxEnchants) break;
-      if (enchant.canEnchantItem(item)) {
-        int level = random.nextInt(enchant.getMaxLevel()) + 1;
-        item.addEnchantment(enchant, level);
-        enchants++;
+        if (finalAmount > 0) {
+          loot.add(new ItemStack(entry.material, finalAmount));
+        }
       }
     }
   }
