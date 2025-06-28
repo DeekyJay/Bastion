@@ -1,5 +1,10 @@
 # Bastion Plugin Configuration
 
+admins:
+  - "QED"
+  - "DeekyJ"
+  - "spraguerilla"
+
 wave:
   # UNUSED: Base number of mobs per wave (before player scaling)
   base-mob-count: 10
