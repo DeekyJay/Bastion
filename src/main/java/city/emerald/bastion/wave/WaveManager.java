@@ -1,6 +1,8 @@
 package city.emerald.bastion.wave;
 
 import org.bukkit.Bukkit;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
@@ -9,12 +11,12 @@ public class WaveManager {
 
   private final Bastion plugin;
   private final VillageManager villageManager;
-
-  private int currentWave;
+  private final LightningManager lightningManager;
   private WaveState waveState;
+  private int currentWave;
   private int remainingMobs;
   private int killCount;
-  private final double BASE_DIFFICULTY_MULTIPLIER = 1.5;
+  private double difficultyMultiplier;
 
   public enum WaveState {
     INACTIVE,
@@ -23,17 +25,22 @@ public class WaveManager {
     COMPLETED,
   }
 
-  public WaveManager(Bastion plugin, VillageManager villageManager) {
+  public WaveManager(
+    Bastion plugin,
+    VillageManager villageManager,
+    LightningManager lightningManager
+  ) {
     this.plugin = plugin;
     this.villageManager = villageManager;
-    this.currentWave = 0;
+    this.lightningManager = lightningManager;
     this.waveState = WaveState.INACTIVE;
+    this.currentWave = 0;
     this.remainingMobs = 0;
     this.killCount = 0;
+    this.difficultyMultiplier = 1.0;
   }
 
   public void startWave(int waveNumber) {
-    this.currentWave = waveNumber;
     this.waveState = WaveState.PREPARING;
     this.killCount = 0;
 
@@ -53,31 +60,36 @@ public class WaveManager {
         plugin,
         () -> {
           this.waveState = WaveState.ACTIVE;
+          this.currentWave = waveNumber;
+          this.remainingMobs = calculateMobCount(waveNumber);
+          this.difficultyMultiplier = 1.0 + (waveNumber * 0.1);
+
+          // Start lightning strikes on boss waves
+          if (waveNumber > 0 && waveNumber % 10 == 0) {
+            lightningManager.start();
+          }
+
+          // Announce the wave start
           Bukkit.broadcastMessage("§cWave " + waveNumber + " has begun!");
         },
         200L
       ); // 10 seconds * 20 ticks
   }
 
-  public void stopWave() {
+  public void completeWave() {
     this.waveState = WaveState.INACTIVE;
-    this.currentWave = 0;
-    this.remainingMobs = 0;
-    this.killCount = 0;
-  }
+    lightningManager.stop();
+    // Any other wave completion logic can go here
+    plugin.getServer().broadcastMessage("§aWave " + currentWave + " completed!");
 
-  public void onMobKill() {
-    killCount++;
-    remainingMobs--;
-
-    if (remainingMobs <= 0 && waveState == WaveState.ACTIVE) {
-      completeWave();
+    // Apply Hero of the Village effect every 5 waves
+    if (currentWave > 0 && currentWave % 5 == 0) {
+      Bukkit.getOnlinePlayers().forEach(player -> {
+        // Apply Hero of the Village for 2 Minecraft days (48000 ticks)
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, 48000, 0));
+        player.sendMessage("§5You are celebrated as the Hero of the Village!");
+      });
     }
-  }
-
-  private void completeWave() {
-    this.waveState = WaveState.COMPLETED;
-    Bukkit.broadcastMessage("§aWave " + currentWave + " completed!");
 
     // Start next wave after delay
     Bukkit
@@ -91,8 +103,23 @@ public class WaveManager {
       ); // 10 seconds * 20 ticks
   }
 
+  public void stopWave() {
+    this.waveState = WaveState.INACTIVE;
+    this.remainingMobs = 0;
+    lightningManager.stop();
+  }
+
+  public void onMobKill() {
+    killCount++;
+    remainingMobs--;
+
+    if (remainingMobs <= 0 && waveState == WaveState.ACTIVE) {
+      completeWave();
+    }
+  }
+
   public double getDifficultyMultiplier() {
-    return Math.pow(BASE_DIFFICULTY_MULTIPLIER, currentWave - 1);
+    return difficultyMultiplier;
   }
 
   public double getHealthMultiplier(int playerCount) {
