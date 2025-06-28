@@ -3,12 +3,9 @@ package city.emerald.bastion;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import city.emerald.bastion.economy.LootManager;
@@ -89,6 +85,12 @@ public final class Bastion extends JavaPlugin implements Listener {
 
   @EventHandler
   public void onMobDeath(EntityDeathEvent event) {
+    if (!gameStateManager.isGameActive()) { return; }
+    
+    if (event.getEntity() instanceof Monster) {
+      waveManager.onMobKill();
+    }
+
     lootManager.handleMobDeath(event);
   }
 
@@ -331,48 +333,6 @@ public final class Bastion extends JavaPlugin implements Listener {
     }
   }
 
-  @EventHandler
-  public void onEntityDeath(EntityDeathEvent event) {
-    if (!gameStateManager.isGameActive()) {
-      return;
-    }
-
-    if (!(event.getEntity() instanceof Monster)) {
-      return;
-    }
-
-    waveManager.onMobKill();
-
-    LivingEntity entity = event.getEntity();
-    int currentWave = waveManager.getCurrentWave();
-
-    // Determine if the mob was elite or boss
-    boolean isElite =
-      entity.getCustomName() != null &&
-      entity.getCustomName().contains("[ELITE]");
-    boolean isBoss =
-      entity.getCustomName() != null &&
-      entity.getCustomName().contains("[BOSS]");
-
-    // Generate and drop loot
-    // Only generate loot if killed by a player
-    if (entity.getKiller() != null) {
-      lootManager.generateLoot(entity, isElite, isBoss);
-    }
-
-    // Distribute wave completion bonus if this was the last mob
-    if (waveManager.getRemainingMobs() <= 1) {
-      for (Player player : Bukkit.getOnlinePlayers()) {
-        int bonus = lootManager.calculateWaveBonus();
-        ItemStack emeralds = new ItemStack(Material.EMERALD, bonus);
-        player.getInventory().addItem(emeralds);
-        player.sendMessage("§a+" + bonus + " emeralds (Wave Completion Bonus)");
-      }
-
-      // Refresh villager trades
-      tradeManager.refreshAllTrades();
-    }
-  }
 
   /**
    * Handles the upgrade command

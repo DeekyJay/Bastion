@@ -122,3 +122,6 @@ runs/
 server/
 config/
 logs/
+
+# Gradle
+bin/
