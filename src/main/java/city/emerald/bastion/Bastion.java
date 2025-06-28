@@ -84,6 +84,7 @@ public final class Bastion extends JavaPlugin implements Listener {
 
     // Register events
     Bukkit.getPluginManager().registerEvents(this, this);
+    Bukkit.getPluginManager().registerEvents(new WorldListener(this, villageManager), this);
 
     logger.info("Bastion plugin enabled successfully!");
   }
