@@ -21,6 +21,7 @@ import city.emerald.bastion.economy.UpgradeManager;
 import city.emerald.bastion.game.GameStateManager;
 import city.emerald.bastion.game.StatsManager;
 import city.emerald.bastion.game.UIManager;
+import city.emerald.bastion.wave.LightningManager;
 import city.emerald.bastion.wave.MobAI;
 import city.emerald.bastion.wave.MobSpawnManager;
 import city.emerald.bastion.wave.WaveManager;
@@ -40,6 +41,7 @@ public final class Bastion extends JavaPlugin implements Listener {
   private LootManager lootManager;
   private TradeManager tradeManager;
   private UpgradeManager upgradeManager;
+  private LightningManager lightningManager;
 
   @Override
   public void onEnable() {
@@ -57,6 +59,7 @@ public final class Bastion extends JavaPlugin implements Listener {
     barrierManager = new BarrierManager(this, villageManager);
     villageManager.setBarrierManager(barrierManager);
     waveManager = new WaveManager(this, villageManager);
+    lightningManager = new LightningManager(this, waveManager, barrierManager);
     lootManager = new LootManager(this, waveManager);
     tradeManager = new TradeManager(this, villageManager, waveManager);
 
