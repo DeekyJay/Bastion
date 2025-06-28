@@ -45,7 +45,8 @@ public class LootManager {
     // Tier 1: Foundational Crafting (Probability: 0.05)
     COMMON_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
       new LootTableEntry(Material.LEATHER, 0.05, 2),
-      new LootTableEntry(Material.IRON_NUGGET, 0.05, 4)
+      new LootTableEntry(Material.IRON_NUGGET, 0.05, 4),
+      new LootTableEntry(Material.GOLD_NUGGET, 0.05, 3)
     ));
     COMMON_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
       new LootTableEntry(Material.OAK_LOG, 0.05, 2),

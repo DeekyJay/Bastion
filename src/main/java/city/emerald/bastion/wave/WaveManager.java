@@ -6,7 +6,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
-import city.emerald.bastion.lightning.LightningManager;
 
 public class WaveManager {
 
