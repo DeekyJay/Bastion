@@ -78,7 +78,9 @@ public final class Bastion extends JavaPlugin implements Listener {
     getServer().getPluginManager().registerEvents(mobSpawnManager, this);
 
     // Register commands
-    getCommand("bastionconfig").setExecutor(new ConfigCommand(this));
+    ConfigCommand configCommand = new ConfigCommand(this);
+    getCommand("bastionconfig").setExecutor(configCommand);
+    getCommand("bastionconfig").setTabCompleter(configCommand);
 
     logger.info("Bastion plugin enabled successfully!");
   }

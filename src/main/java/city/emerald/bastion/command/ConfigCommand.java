@@ -19,13 +19,64 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Command logic will go here
-        return false;
+        if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to use this command.");
+            return true;
+        }
+
+        if (args.length == 0) {
+            sender.sendMessage("§cUsage: /bastionconfig <reload|set|get> [key] [value]");
+            return true;
+        }
+
+        switch (args[0].toLowerCase()) {
+            case "reload":
+                plugin.reloadConfig();
+                sender.sendMessage("§aConfiguration reloaded.");
+                break;
+            case "set":
+                if (args.length < 3) {
+                    sender.sendMessage("§cUsage: /bastionconfig set <key> <value>");
+                    return true;
+                }
+                String key = args[1];
+                String value = args[2];
+                plugin.getConfig().set(key, value);
+                plugin.saveConfig();
+                sender.sendMessage("§aConfiguration saved.");
+                break;
+            case "get":
+                if (args.length < 2) {
+                    sender.sendMessage("§cUsage: /bastionconfig get <key>");
+                    return true;
+                }
+                String getKey = args[1];
+                Object getValue = plugin.getConfig().get(getKey);
+                if (getValue != null) {
+                    sender.sendMessage("§a" + getKey + ": §f" + getValue.toString());
+                } else {
+                    sender.sendMessage("§cKey not found: " + getKey);
+                }
+                break;
+            default:
+                sender.sendMessage("§cUnknown subcommand. Use 'reload', 'set', or 'get'.");
+                break;
+        }
+
+        return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        // Tab completion logic will go here
-        return null;
+        if (args.length == 1) {
+            return java.util.stream.Stream.of("reload", "set", "get")
+                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+        } else if (args.length == 2 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("get"))) {
+            return plugin.getConfig().getKeys(false).stream()
+                    .filter(s -> s.startsWith(args[1].toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        return java.util.Collections.emptyList();
     }
 }
