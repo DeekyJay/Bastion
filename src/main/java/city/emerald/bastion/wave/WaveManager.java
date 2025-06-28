@@ -1,11 +1,9 @@
 package city.emerald.bastion.wave;
 
+import org.bukkit.Bukkit;
+
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
-import java.util.ArrayList;
-import java.util.List;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 public class WaveManager {
 
