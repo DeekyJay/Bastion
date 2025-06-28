@@ -42,38 +42,54 @@ public class LootManager {
   private static final Map<EntityType, List<LootTableEntry>> BONUS_LOOT_TABLE = new HashMap<>();
 
   static {
-    // Common Loot
+    // Tier 1: Foundational Crafting (Probability: 0.05)
     COMMON_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
-      new LootTableEntry(Material.IRON_NUGGET, 0.50, 3), // 50% chance for 1-3 iron nuggets
-      new LootTableEntry(Material.COAL, 0.25, 2)         // 25% chance for 1-2 coal
+      new LootTableEntry(Material.LEATHER, 0.05, 2),
+      new LootTableEntry(Material.IRON_NUGGET, 0.05, 4)
     ));
     COMMON_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
-      new LootTableEntry(Material.ARROW, 0.80, 5),      // 80% chance for 1-5 arrows
-      new LootTableEntry(Material.GOLD_NUGGET, 0.10, 2)  // 10% chance for 1-2 gold nuggets
+      new LootTableEntry(Material.OAK_LOG, 0.05, 2),
+      new LootTableEntry(Material.COAL, 0.05, 3)
     ));
     COMMON_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
-      new LootTableEntry(Material.STRING, 0.75, 3)       // 75% chance for 1-3 string
-    ));
-    COMMON_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
-      new LootTableEntry(Material.GUNPOWDER, 0.90, 4)   // 90% chance for 1-4 gunpowder
+      new LootTableEntry(Material.SUGAR_CANE, 0.05, 3),
+      new LootTableEntry(Material.COBBLESTONE, 0.05, 4)
     ));
 
-    // Bonus Loot (rarer items)
+    // Tier 2: Advanced Crafting & Enchanting (Probability: 0.02)
+    COMMON_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
+      new LootTableEntry(Material.DIAMOND, 0.02, 1),
+      new LootTableEntry(Material.REDSTONE, 0.02, 5)
+    ));
+    COMMON_LOOT_TABLE.put(EntityType.ENDERMAN, Arrays.asList(
+      new LootTableEntry(Material.OBSIDIAN, 0.02, 2),
+      new LootTableEntry(Material.NETHER_WART, 0.02, 2)
+    ));
+    COMMON_LOOT_TABLE.put(EntityType.WITCH, Arrays.asList(
+      new LootTableEntry(Material.LAPIS_LAZULI, 0.02, 6),
+      new LootTableEntry(Material.BLAZE_ROD, 0.02, 1)
+    ));
+
+    // Tier 3: Bonus Drops (Probability: 0.03)
+    // Note: This tier currently uses simple materials. A future enhancement
+    // could allow for enchanted items or specific potions.
     BONUS_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
-      new LootTableEntry(Material.IRON_INGOT, 0.10, 1),  // 10% chance for 1 iron ingot
-      new LootTableEntry(Material.GOLD_NUGGET, 0.05, 5)  // 5% chance for 1-5 gold nuggets
+      new LootTableEntry(Material.GOLDEN_APPLE, 0.03, 1)
     ));
     BONUS_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
-      new LootTableEntry(Material.TIPPED_ARROW, 0.15, 2), // 15% chance for 1-2 tipped arrows
-      new LootTableEntry(Material.BONE_BLOCK, 0.05, 1)    // 5% chance for 1 bone block
+      new LootTableEntry(Material.EXPERIENCE_BOTTLE, 0.03, 3)
     ));
     BONUS_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
-      new LootTableEntry(Material.COBWEB, 0.10, 2),       // 10% chance for 1-2 cobwebs
-      new LootTableEntry(Material.SPIDER_EYE, 0.20, 1)    // 20% chance for 1 spider eye
+      new LootTableEntry(Material.VILLAGER_SPAWN_EGG, 0.03, 1)
     ));
     BONUS_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
-      new LootTableEntry(Material.TNT, 0.05, 1),          // 5% chance for 1 TNT
-      new LootTableEntry(Material.DIAMOND, 0.01, 1)       // 1% chance for 1 diamond
+      new LootTableEntry(Material.TNT, 0.03, 2)
+    ));
+    BONUS_LOOT_TABLE.put(EntityType.ENDERMAN, Arrays.asList(
+      new LootTableEntry(Material.TOTEM_OF_UNDYING, 0.03, 1)
+    ));
+    BONUS_LOOT_TABLE.put(EntityType.WITCH, Arrays.asList(
+      new LootTableEntry(Material.GHAST_TEAR, 0.03, 1)
     ));
   }
 
@@ -85,12 +101,17 @@ public class LootManager {
 
   public void handleMobDeath(EntityDeathEvent event) {
     LivingEntity entity = event.getEntity();
+    if (entity.getKiller() == null) {
+      return; // Don't drop custom loot if not killed by a player
+    }
+  
     EntityType entityType = entity.getType();
 
     // For now, let's use a default multiplier and always check for bonus items.
     // This can be customized later based on game state or other factors.
-    double multiplier = 1.0; 
-    boolean includeBonusItems = true;
+    int currentWave = waveManager.getCurrentWave();
+    double multiplier = 1.0 + (0.1 * currentWave);
+    boolean includeBonusItems = currentWave % 5 == 0; // Include bonus items every 5 waves
 
     List<ItemStack> customLoot = generateLoot(entityType, multiplier, includeBonusItems);
     event.getDrops().addAll(customLoot);
