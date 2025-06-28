@@ -1,6 +1,7 @@
 name: Bastion
 version: '1.0-SNAPSHOT'
 main: city.emerald.bastion.Bastion
+api: '1.0'
 api-version: '1.21'
 description: A wave-based village defense plugin where players protect villagers from increasingly challenging hostile mobs
 author: EmeraldCity
@@ -11,9 +12,8 @@ commands:
     usage: /<command> [start|stop|waves|info]
     aliases: [bst]
   bastionconfig:
-    description: "Get and set plugin configuration values"
-    usage: "/bastionconfig <get|set|reload> [path] [value]"
-    permission: bastion.config
+    description: Get and set plugin configuration values
+    usage: /bastionconfig <get|set|reload> [path] [value]
     aliases: [bconf]
 
 permissions:
