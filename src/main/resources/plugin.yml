@@ -10,6 +10,11 @@ commands:
     description: Main command for Bastion plugin
     usage: /<command> [start|stop|waves|info]
     aliases: [bst]
+  bastionconfig:
+    description: "Get and set plugin configuration values"
+    usage: "/bastionconfig <get|set|reload> [path] [value]"
+    permission: bastion.config
+    aliases: [bconf]
 
 permissions:
   bastion.admin:
@@ -23,4 +28,7 @@ permissions:
     default: "op"
   bastion.stop:
     description: Allows stopping ongoing waves
+    default: "op"
+  bastion.config:
+    description: "Allows modifying the plugin configuration"
     default: "op"

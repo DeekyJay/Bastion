@@ -1,13 +1,14 @@
 package city.emerald.bastion.wave;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
 
-public class WaveManager {
+public class WaveManager implements Listener {
 
   private final Bastion plugin;
   private final VillageManager villageManager;
