@@ -1,14 +1,17 @@
 package city.emerald.bastion;
 
-import city.emerald.bastion.economy.UpgradeManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import org.bukkit.Location;
+import org.bukkit.StructureType;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Villager;
+
+import city.emerald.bastion.economy.UpgradeManager;
 
 public class VillageManager {
 
@@ -39,20 +42,64 @@ public class VillageManager {
    * @return true if a valid village was found and selected
    */
   public boolean findAndSelectVillage(World world) {
-    // Search for villagers in loaded chunks
-    for (Entity entity : world.getEntities()) {
-      if (entity.getType() == EntityType.VILLAGER) {
-        Villager villager = (Villager) entity;
-        if (isValidVillageLocation(villager.getLocation())) {
-          Location spawnLoc = findSafeLocation(villager.getLocation());
-          this.villageCenter = spawnLoc;
-          world.setSpawnLocation(spawnLoc);
-          registerVillagersInRange(world);
-          return true;
-        }
+    plugin.getLogger().info("Searching for the nearest village structure...");
+
+    // Use locateNearestStructure to find a village even in unloaded chunks
+    Location nearestVillage = world.locateNearestStructure(
+      world.getSpawnLocation(),
+      StructureType.VILLAGE,
+      5000, // Search within a 5000 block radius
+      true // Find in unloaded chunks
+    );
+
+    if (nearestVillage != null) {
+      plugin
+        .getLogger()
+        .info("Found a village structure at: " + nearestVillage.toVector());
+
+      // We found a village structure, now find a safe spot within it
+      if (isValidVillageLocation(nearestVillage)) {
+        Location spawnLoc = findSafeLocation(nearestVillage);
+        this.villageCenter = spawnLoc;
+        world.setSpawnLocation(spawnLoc);
+
+        // We need to load the chunk to register villagers
+        spawnLoc.getChunk().load();
+        plugin
+          .getServer()
+          .getScheduler()
+          .runTaskLater(
+            plugin,
+            () -> {
+              registerVillagersInRange(world);
+              plugin
+                .getLogger()
+                .info(
+                  "Village selected and spawn set. " +
+                  registeredVillagers.size() +
+                  " villagers registered."
+                );
+            },
+            20L
+          ); // Delay to allow chunk to fully load
+
+        return true;
+      } else {
+        plugin
+          .getLogger()
+          .warning(
+            "Found a village structure, but it's not in a suitable location (e.g., not enough solid ground)."
+          );
+        return false;
       }
+    } else {
+      plugin
+        .getLogger()
+        .warning(
+          "No village structure found within a 5000 block radius of the world spawn."
+        );
+      return false;
     }
-    return false;
   }
 
   /**
