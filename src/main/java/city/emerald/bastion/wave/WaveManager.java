@@ -1,6 +1,8 @@
 package city.emerald.bastion.wave;
 
 import org.bukkit.Bukkit;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
@@ -59,6 +61,31 @@ public class WaveManager {
       ); // 10 seconds * 20 ticks
   }
 
+  public void completeWave() {
+    this.waveState = WaveState.COMPLETED;
+    Bukkit.broadcastMessage("§aWave " + currentWave + " completed!");
+
+    // Apply Hero of the Village effect every 5 waves
+    if (currentWave > 0 && currentWave % 5 == 0) {
+      Bukkit.getOnlinePlayers().forEach(player -> {
+        // Apply Hero of the Village for 2 Minecraft days (48000 ticks)
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, 48000, 0));
+        player.sendMessage("§5You are celebrated as the Hero of the Village!");
+      });
+    }
+
+    // Start next wave after delay
+    Bukkit
+      .getScheduler()
+      .runTaskLater(
+        plugin,
+        () -> {
+          startWave(currentWave + 1);
+        },
+        200L
+      ); // 10 seconds * 20 ticks
+  }
+
   public void stopWave() {
     this.waveState = WaveState.INACTIVE;
     this.currentWave = 0;
@@ -73,22 +100,6 @@ public class WaveManager {
     if (remainingMobs <= 0 && waveState == WaveState.ACTIVE) {
       completeWave();
     }
-  }
-
-  private void completeWave() {
-    this.waveState = WaveState.COMPLETED;
-    Bukkit.broadcastMessage("§aWave " + currentWave + " completed!");
-
-    // Start next wave after delay
-    Bukkit
-      .getScheduler()
-      .runTaskLater(
-        plugin,
-        () -> {
-          startWave(currentWave + 1);
-        },
-        200L
-      ); // 10 seconds * 20 ticks
   }
 
   public double getDifficultyMultiplier() {
