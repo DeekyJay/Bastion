@@ -46,40 +46,39 @@ public final class Bastion extends JavaPlugin implements Listener {
 
   @Override
   public void onEnable() {
-    // Initialize logger
+    // Initialize logger and config
     logger = getLogger();
-
-    // Load and save default config if not exists
     saveDefaultConfig();
     config = getConfig();
 
-    // Initialize core managers
+    // Initialize managers in the correct order to resolve dependencies
+    // 1. Standalone managers
+    gameStateManager = new GameStateManager(this);
     villageManager = new VillageManager(this);
-    upgradeManager = new UpgradeManager(this, villageManager);
-    villageManager.setUpgradeManager(upgradeManager);
-    barrierManager = new BarrierManager(this, villageManager);
-    villageManager.setBarrierManager(barrierManager);
-
-    // Initialize wave and combat managers
-    waveManager = new WaveManager(this, gameStateManager, mobSpawnManager);
-    lootManager = new LootManager(this, waveManager); // Pass waveManager
-    tradeManager = new TradeManager(this, villageManager, waveManager);
-
-    // Initialize game managers
-    gameStateManager = new GameStateManager(this, waveManager, villageManager);
-    uiManager =
-      new UIManager(this, waveManager, villageManager, gameStateManager);
     statsManager = new StatsManager(this);
-    lightningManager = new LightningManager(this, gameStateManager, barrierManager);
+
+    // 2. Managers that depend on standalone managers
+    barrierManager = new BarrierManager(this, villageManager);
+    lightningManager = new LightningManager(this, barrierManager);
+    waveManager = new WaveManager(this, villageManager, lightningManager, gameStateManager);
+    lootManager = new LootManager(this, gameStateManager);
+    mobSpawnManager = new MobSpawnManager(this, villageManager, barrierManager, lootManager);
+    tradeManager = new TradeManager(this, villageManager, waveManager);
+    upgradeManager = new UpgradeManager(this, villageManager);
+    uiManager = new UIManager(this, waveManager, villageManager, gameStateManager);
+
+    // 3. Inject dependencies using setters to break circular dependencies
+    gameStateManager.setWaveManager(waveManager);
+    gameStateManager.setVillageManager(villageManager);
+    mobSpawnManager.setWaveManager(waveManager);
 
     // Register event listeners
     getServer().getPluginManager().registerEvents(this, this);
-    getServer().getPluginManager().registerEvents(waveManager, this);
+    getServer().getPluginManager().registerEvents(gameStateManager, this);
     getServer().getPluginManager().registerEvents(mobSpawnManager, this);
-    getServer().getPluginManager().registerEvents(new WorldListener(this, villageManager), this);
 
     // Register commands
-    this.getCommand("bastionconfig").setExecutor(new ConfigCommand(this));
+    getCommand("bastionconfig").setExecutor(new ConfigCommand(this));
 
     logger.info("Bastion plugin enabled successfully!");
   }
