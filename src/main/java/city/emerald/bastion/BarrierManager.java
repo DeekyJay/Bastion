@@ -81,6 +81,10 @@ public class BarrierManager implements Listener {
       );
   }
 
+  public VillageManager getVillageManager() {
+    return villageManager;
+  }
+
   /**
    * Loads configuration values from the plugin config
    */
