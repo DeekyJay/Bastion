@@ -40,10 +40,11 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 String key = args[1];
-                String value = args[2];
+                // Rebuild the value string if it contains spaces
+                String value = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
                 plugin.getConfig().set(key, value);
                 plugin.saveConfig();
-                sender.sendMessage("§aConfiguration saved.");
+                sender.sendMessage("§aConfiguration saved: " + key + " = " + value);
                 break;
             case "get":
                 if (args.length < 2) {
@@ -73,7 +74,8 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .collect(java.util.stream.Collectors.toList());
         } else if (args.length == 2 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("get"))) {
-            return plugin.getConfig().getKeys(false).stream()
+            // Return all keys, including nested ones, for tab completion
+            return plugin.getConfig().getKeys(true).stream()
                     .filter(s -> s.startsWith(args[1].toLowerCase()))
                     .collect(java.util.stream.Collectors.toList());
         }
