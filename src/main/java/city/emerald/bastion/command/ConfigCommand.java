@@ -59,7 +59,7 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
 
                 if (getValue != null) {
                     plugin.getLogger().info("[DEBUG] Found value: '" + getValue.toString() + "' of type: " + getValue.getClass().getName());
-                    sender.sendMessage("§a" + getKey + ": §f" + getValue.toString());
+                    sender.sendMessage("§a" + getKey + ": §f" + formatConfigValue(getValue));
                 } else {
                     plugin.getLogger().warning("[DEBUG] Key not found: '" + getKey + "'");
                     sender.sendMessage("§cKey not found: " + getKey);
@@ -71,6 +71,24 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
         }
 
         return true;
+    }
+
+    private String formatConfigValue(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            return "[" + list.stream()
+                .map(Object::toString)
+                .collect(java.util.stream.Collectors.joining(", ")) + "]";
+        } else if (value instanceof org.bukkit.configuration.ConfigurationSection) {
+            org.bukkit.configuration.ConfigurationSection section = (org.bukkit.configuration.ConfigurationSection) value;
+            return "{" + section.getKeys(false).stream()
+                .map(key -> key + ": " + formatConfigValue(section.get(key)))
+                .collect(java.util.stream.Collectors.joining(", ")) + "}";
+        } else {
+            return value.toString();
+        }
     }
 
     @Override
