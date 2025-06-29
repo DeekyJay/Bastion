@@ -95,9 +95,10 @@ public class UIManager {
       );
       waveProgressBar.setTitle(title);
 
-      double progress =
-        1.0 -
-        ((double) waveManager.getRemainingMobs() / waveManager.getKillCount());
+      // Fixed progress calculation: killCount / totalMobs
+      int totalMobs = waveManager.getTotalMobs();
+      double progress = totalMobs > 0 ?
+        (double) waveManager.getKillCount() / totalMobs : 0.0;
       waveProgressBar.setProgress(Math.max(0.0, Math.min(1.0, progress)));
     }
   }

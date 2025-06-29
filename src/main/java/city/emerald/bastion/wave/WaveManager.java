@@ -14,6 +14,7 @@ public class WaveManager {
   private final VillageManager villageManager;
   private final LightningManager lightningManager;
   private final GameStateManager gameStateManager;
+  private MobSpawnManager mobSpawnManager;
   private WaveState waveState;
   private int currentWave;
   private int remainingMobs;
@@ -44,13 +45,19 @@ public class WaveManager {
     this.difficultyMultiplier = 1.0;
   }
 
+  /**
+   * Set the MobSpawnManager to enable cleanup functionality
+   */
+  public void setMobSpawnManager(MobSpawnManager mobSpawnManager) {
+    this.mobSpawnManager = mobSpawnManager;
+  }
+
   public void startWave(int waveNumber) {
     this.waveState = WaveState.PREPARING;
     this.killCount = 0;
 
-    // Calculate mob count based on player count
-    int playerCount = Bukkit.getOnlinePlayers().size();
-    this.remainingMobs = calculateMobCount(playerCount);
+    // Calculate mob count based on wave number (more appropriate than player count for initial calculation)
+    this.remainingMobs = calculateMobCount(waveNumber);
 
     // Announce wave start
     Bukkit.broadcastMessage(
@@ -66,7 +73,7 @@ public class WaveManager {
           this.waveState = WaveState.ACTIVE;
           this.currentWave = waveNumber;
           this.gameStateManager.setCurrentWaveNumber(waveNumber);
-          this.remainingMobs = calculateMobCount(waveNumber);
+          // Remove duplicate assignment - remainingMobs already set above
           this.difficultyMultiplier = 1.0 + (waveNumber * 0.1);
 
           // Start lightning strikes on boss waves
@@ -118,7 +125,14 @@ public class WaveManager {
     killCount++;
     remainingMobs--;
 
+    // Safety check: prevent remainingMobs from going below 0
+    if (remainingMobs < 0) {
+      remainingMobs = 0;
+    }
+
     if (remainingMobs <= 0 && waveState == WaveState.ACTIVE) {
+      // Trigger instant mob cleanup before completing wave
+      cleanupRemainingMobs();
       completeWave();
     }
   }
@@ -131,8 +145,20 @@ public class WaveManager {
     return getDifficultyMultiplier() * (1 + 0.3 * playerCount);
   }
 
-  private int calculateMobCount(int playerCount) {
-    return 10 + (2 * playerCount);
+  private int calculateMobCount(int waveNumber) {
+    int playerCount = Bukkit.getOnlinePlayers().size();
+    // Base mob count increases with wave number, scaled by player count
+    return (5 + waveNumber) + (2 * playerCount);
+  }
+
+  /**
+   * Instantly cleanup all remaining hostile mobs when wave completion target is reached
+   */
+  private void cleanupRemainingMobs() {
+    plugin.getLogger().info("Cleaning up remaining mobs for wave completion");
+    if (mobSpawnManager != null) {
+      mobSpawnManager.cleanupRemainingMobs();
+    }
   }
 
   public boolean isWaveActive() {
@@ -153,6 +179,10 @@ public class WaveManager {
 
   public int getKillCount() {
     return killCount;
+  }
+
+  public int getTotalMobs() {
+    return killCount + remainingMobs;
   }
 
   public WaveState getWaveState() {
