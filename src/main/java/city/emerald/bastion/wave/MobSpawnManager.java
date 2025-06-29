@@ -336,6 +336,37 @@ public class MobSpawnManager implements Listener {
 
   @EventHandler
   public void onEntityDeath(EntityDeathEvent event) {
-    // Handle entity death event if needed
+    // Track mob deaths for cleanup purposes
+    if (event.getEntity() instanceof org.bukkit.entity.Monster) {
+      spawnTimes.remove(event.getEntity());
+      if (currentMobCount > 0) {
+        currentMobCount--;
+      }
+    }
+  }
+
+  /**
+   * Instantly cleanup all remaining hostile mobs without drops when wave completion target is reached
+   */
+  public void cleanupRemainingMobs() {
+    plugin.getLogger().info("Instantly cleaning up " + spawnTimes.size() + " remaining mobs");
+
+    // Remove all tracked hostile mobs instantly without drops
+    for (LivingEntity mob : spawnTimes.keySet()) {
+      if (mob.isValid()) {
+        // Clear drops to prevent item spam
+        mob.getWorld().getEntitiesByClass(org.bukkit.entity.Monster.class).forEach(monster -> {
+          if (monster.equals(mob)) {
+            monster.remove();
+          }
+        });
+      }
+    }
+
+    // Clear all tracking
+    spawnTimes.clear();
+    currentMobCount = 0;
+
+    plugin.getLogger().info("Mob cleanup completed");
   }
 }

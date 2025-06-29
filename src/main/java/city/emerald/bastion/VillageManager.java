@@ -42,7 +42,9 @@ public class VillageManager {
    * @return true if a valid village was found and selected
    */
   public boolean findAndSelectVillage(World world) {
-    plugin.getLogger().info("Searching for the nearest village structure...");
+    plugin
+      .getLogger()
+      .info("Searching for the nearest village structure with at least 4 villagers...");
 
     // Use locateNearestStructure to find a village even in unloaded chunks
     Location nearestVillage = world.locateNearestStructure(
@@ -57,8 +59,9 @@ public class VillageManager {
         .getLogger()
         .info("Found a village structure at: " + nearestVillage.toVector());
 
-      // We found a village structure, now find a safe spot within it
-      if (isValidVillageLocation(nearestVillage)) {
+      // We found a village structure, now validate it has enough villagers
+      if (isValidVillageLocation(nearestVillage) &&
+        hasEnoughVillagers(nearestVillage, world)) {
         Location spawnLoc = findSafeLocation(nearestVillage);
         this.villageCenter = spawnLoc;
         world.setSpawnLocation(spawnLoc);
@@ -88,7 +91,7 @@ public class VillageManager {
         plugin
           .getLogger()
           .warning(
-            "Found a village structure, but it's not in a suitable location (e.g., not enough solid ground)."
+            "Found a village structure, but it's not suitable (insufficient solid ground or fewer than 4 villagers)."
           );
         return false;
       }
@@ -126,6 +129,38 @@ public class VillageManager {
     }
 
     return groundBlocks >= requiredGroundBlocks;
+  }
+
+  /**
+   * Checks if a village location has at least 4 villagers within the barrier range.
+   * @param villageLocation The village center location
+   * @param world The world to search in
+   * @return true if the village has at least 4 villagers
+   */
+  private boolean hasEnoughVillagers(Location villageLocation, World world) {
+    int radius = getBarrierRadius();
+    int villagerCount = 0;
+
+    // Load the chunk to ensure villagers are loaded
+    villageLocation.getChunk().load();
+
+    // Count villagers within the barrier radius
+    for (Entity entity : world.getEntities()) {
+      if (entity.getType() == EntityType.VILLAGER) {
+        if (isInRange(entity.getLocation(), villageLocation, radius)) {
+          villagerCount++;
+        }
+      }
+    }
+
+    plugin
+      .getLogger()
+      .info(
+        "Found " +
+        villagerCount +
+        " villagers in village area (minimum required: 4)"
+      );
+    return villagerCount >= 4;
   }
 
   /**
@@ -235,6 +270,9 @@ public class VillageManager {
    * @return The amount of damage to reduce
    */
   public double getBarrierDamageReduction() {
+    if (this.upgradeManager == null) {
+      return 0.0; // Default no reduction if upgrade manager not initialized
+    }
     int barrierLevel = upgradeManager.getVillageUpgradeLevel(
       UpgradeManager.UpgradeType.BARRIER_STRENGTH
     );

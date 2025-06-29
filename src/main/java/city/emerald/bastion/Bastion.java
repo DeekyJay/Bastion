@@ -71,6 +71,9 @@ public final class Bastion extends JavaPlugin implements Listener {
     gameStateManager.setWaveManager(waveManager);
     gameStateManager.setVillageManager(villageManager);
     mobSpawnManager.setWaveManager(waveManager);
+    waveManager.setMobSpawnManager(mobSpawnManager);
+    villageManager.setUpgradeManager(upgradeManager);
+    villageManager.setBarrierManager(barrierManager);
 
     // Register event listeners
     getServer().getPluginManager().registerEvents(this, this);
@@ -88,7 +91,7 @@ public final class Bastion extends JavaPlugin implements Listener {
   @EventHandler
   public void onMobDeath(EntityDeathEvent event) {
     if (!gameStateManager.isGameActive()) { return; }
-    
+
     if (event.getEntity() instanceof Monster) {
       waveManager.onMobKill();
     }
@@ -332,12 +335,8 @@ public final class Bastion extends JavaPlugin implements Listener {
       event.setDamage(damage * multiplier);
     }
 
-    // Track mob kills
-    if (event.getEntity() instanceof Monster && event.getEntity().isDead()) {
-      waveManager.onMobKill();
-    }
+    // Note: Mob kill tracking is handled in onMobDeath() method to prevent double counting
   }
-
 
   /**
    * Handles the upgrade command
