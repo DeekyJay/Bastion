@@ -1,11 +1,9 @@
 package city.emerald.bastion.game;
 
-import city.emerald.bastion.Bastion;
-import city.emerald.bastion.VillageManager;
-import city.emerald.bastion.wave.WaveManager;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,17 +11,22 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import city.emerald.bastion.Bastion;
+import city.emerald.bastion.VillageManager;
+import city.emerald.bastion.wave.WaveManager;
+
 public class GameStateManager implements Listener {
 
   private final Bastion plugin;
-  private final WaveManager waveManager;
-  private final VillageManager villageManager;
+  private WaveManager waveManager;
+  private VillageManager villageManager;
 
   private GameState currentState;
   private final Map<UUID, Boolean> activePlayers;
   private boolean isGameActive;
   private int minPlayers;
   private int maxPlayers;
+  private int currentWaveNumber = 0;
 
   public enum GameState {
     LOBBY("Waiting for players..."),
@@ -42,14 +45,8 @@ public class GameStateManager implements Listener {
     }
   }
 
-  public GameStateManager(
-    Bastion plugin,
-    WaveManager waveManager,
-    VillageManager villageManager
-  ) {
+  public GameStateManager(Bastion plugin) {
     this.plugin = plugin;
-    this.waveManager = waveManager;
-    this.villageManager = villageManager;
     this.currentState = GameState.LOBBY;
     this.activePlayers = new HashMap<>();
     this.isGameActive = false;
@@ -59,8 +56,16 @@ public class GameStateManager implements Listener {
     Bukkit.getPluginManager().registerEvents(this, plugin);
   }
 
+  public void setWaveManager(WaveManager waveManager) {
+    this.waveManager = waveManager;
+  }
+
+  public void setVillageManager(VillageManager villageManager) {
+    this.villageManager = villageManager;
+  }
+
   public void startGame() {
-    if (currentState != GameState.LOBBY) {
+    if (currentState != GameState.LOBBY || waveManager == null) {
       return;
     }
 
@@ -89,7 +94,7 @@ public class GameStateManager implements Listener {
         plugin,
         () -> {
           currentState = GameState.ACTIVE;
-          waveManager.startWave(1);
+          if (waveManager != null) waveManager.startWave(1);
           Bukkit.broadcastMessage("§aGame started!");
         },
         200L
@@ -97,20 +102,22 @@ public class GameStateManager implements Listener {
   }
 
   public void stopGame() {
-    if (!isGameActive) {
+    if (currentState == GameState.LOBBY) {
       return;
     }
 
-    waveManager.stopWave();
     currentState = GameState.LOBBY;
     isGameActive = false;
     activePlayers.clear();
-    villageManager.cleanup();
+
+    if (waveManager != null) {
+      waveManager.stopWave();
+    }
 
     Bukkit.broadcastMessage("§cGame stopped!");
   }
 
-  public void completeGame() {
+  public void endGame() {
     if (currentState != GameState.ACTIVE) {
       return;
     }
@@ -172,6 +179,18 @@ public class GameStateManager implements Listener {
     return currentState;
   }
 
+  public void setCurrentState(GameState state) {
+    this.currentState = state;
+  }
+
+  public int getCurrentWaveNumber() {
+    return currentWaveNumber;
+  }
+
+  public void setCurrentWaveNumber(int waveNumber) {
+    this.currentWaveNumber = waveNumber;
+  }
+
   public boolean isGameActive() {
     return isGameActive;
   }
@@ -188,7 +207,7 @@ public class GameStateManager implements Listener {
         waveManager.getCurrentWave() >=
         plugin.getConfig().getInt("max-waves", 30)
       ) {
-        completeGame();
+        endGame();
       }
     }
   }

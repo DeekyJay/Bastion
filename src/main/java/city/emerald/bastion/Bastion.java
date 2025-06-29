@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import city.emerald.bastion.command.ConfigCommand;
 import city.emerald.bastion.economy.LootManager;
 import city.emerald.bastion.economy.TradeManager;
 import city.emerald.bastion.economy.UpgradeManager;
@@ -45,46 +46,41 @@ public final class Bastion extends JavaPlugin implements Listener {
 
   @Override
   public void onEnable() {
-    // Initialize logger
+    // Initialize logger and config
     logger = getLogger();
-
-    // Load and save default config if not exists
     saveDefaultConfig();
     config = getConfig();
 
-    // Initialize core managers
+    // Initialize managers in the correct order to resolve dependencies
+    // 1. Standalone managers
+    gameStateManager = new GameStateManager(this);
     villageManager = new VillageManager(this);
-    upgradeManager = new UpgradeManager(this, villageManager);
-    villageManager.setUpgradeManager(upgradeManager);
-    barrierManager = new BarrierManager(this, villageManager);
-    villageManager.setBarrierManager(barrierManager);
-
-    // Initialize wave and combat managers
-    lightningManager = new LightningManager(this, barrierManager);
-    waveManager = new WaveManager(this, villageManager, lightningManager);
-    lootManager = new LootManager(this, waveManager);
-    tradeManager = new TradeManager(this, villageManager, waveManager);
-
-    // Initialize game managers
-    gameStateManager = new GameStateManager(this, waveManager, villageManager);
-    uiManager =
-      new UIManager(this, waveManager, villageManager, gameStateManager);
     statsManager = new StatsManager(this);
 
-    // Initialize mob managers
-    mobSpawnManager =
-      new MobSpawnManager(
-        this,
-        waveManager,
-        villageManager,
-        barrierManager,
-        lootManager
-      );
-    mobAI = new MobAI(this, villageManager, waveManager);
+    // 2. Managers that depend on standalone managers
+    barrierManager = new BarrierManager(this, villageManager);
+    lightningManager = new LightningManager(this, barrierManager);
+    waveManager = new WaveManager(this, villageManager, lightningManager, gameStateManager);
+    lootManager = new LootManager(this, gameStateManager);
+    mobSpawnManager = new MobSpawnManager(this, villageManager, barrierManager, lootManager);
+    tradeManager = new TradeManager(this, villageManager, waveManager);
+    upgradeManager = new UpgradeManager(this, villageManager);
+    uiManager = new UIManager(this, waveManager, villageManager, gameStateManager);
 
-    // Register events
-    Bukkit.getPluginManager().registerEvents(this, this);
-    Bukkit.getPluginManager().registerEvents(new WorldListener(this, villageManager), this);
+    // 3. Inject dependencies using setters to break circular dependencies
+    gameStateManager.setWaveManager(waveManager);
+    gameStateManager.setVillageManager(villageManager);
+    mobSpawnManager.setWaveManager(waveManager);
+
+    // Register event listeners
+    getServer().getPluginManager().registerEvents(this, this);
+    getServer().getPluginManager().registerEvents(gameStateManager, this);
+    getServer().getPluginManager().registerEvents(mobSpawnManager, this);
+
+    // Register commands
+    ConfigCommand configCommand = new ConfigCommand(this);
+    getCommand("bastionconfig").setExecutor(configCommand);
+    getCommand("bastionconfig").setTabCompleter(configCommand);
 
     logger.info("Bastion plugin enabled successfully!");
   }
@@ -122,133 +118,136 @@ public final class Bastion extends JavaPlugin implements Listener {
     String label,
     String[] args
   ) {
-    if (!command.getName().equalsIgnoreCase("bastion")) {
-      return false;
+    if (sender == null) {
+      return false; // Cannot handle command without a sender
     }
-
-    if (args.length == 0) {
-      sender.sendMessage("§6=== Bastion Commands ===");
-      sender.sendMessage(
-        "§e/bastion findvillage §7- Find and select a village"
-      );
-      sender.sendMessage("§e/bastion barrier §7- Toggle the barrier");
-      sender.sendMessage("§e/bastion start §7- Start a new defense wave");
-      sender.sendMessage("§e/bastion stop §7- Stop the current game");
-      sender.sendMessage("§e/bastion info §7- Show game status");
-      if (sender.hasPermission("bastion.admin")) {
-        sender.sendMessage("§e/bastion pause §7- Pause the current game");
-        sender.sendMessage("§e/bastion resume §7- Resume the paused game");
-        sender.sendMessage("§e/bastion debug §7- Toggle debug mode");
-        sender.sendMessage("§e/bastion stats <player> §7- View player stats");
+    if (command.getName().equalsIgnoreCase("bastion")) {
+      if (args.length == 0) {
+        sender.sendMessage("§6=== Bastion Commands ===");
+        sender.sendMessage(
+          "§e/bastion findvillage §7- Find and select a village"
+        );
+        sender.sendMessage("§e/bastion barrier §7- Toggle the barrier");
+        sender.sendMessage("§e/bastion start §7- Start a new defense wave");
+        sender.sendMessage("§e/bastion stop §7- Stop the current game");
+        sender.sendMessage("§e/bastion info §7- Show game status");
+        if (sender.hasPermission("bastion.admin")) {
+          sender.sendMessage("§e/bastion pause §7- Pause the current game");
+          sender.sendMessage("§e/bastion resume §7- Resume the paused game");
+          sender.sendMessage("§e/bastion debug §7- Toggle debug mode");
+          sender.sendMessage("§e/bastion stats <player> §7- View player stats");
+        }
+        sender.sendMessage(
+          "§e/bastion upgrade player <type> §7- Purchase player upgrade"
+        );
+        sender.sendMessage(
+          "§e/bastion upgrade village <type> §7- Purchase village upgrade"
+        );
+        sender.sendMessage("§e/bastion upgrades §7- List available upgrades");
+        return true;
       }
-      sender.sendMessage(
-        "§e/bastion upgrade player <type> §7- Purchase player upgrade"
-      );
-      sender.sendMessage(
-        "§e/bastion upgrade village <type> §7- Purchase village upgrade"
-      );
-      sender.sendMessage("§e/bastion upgrades §7- List available upgrades");
+
+      switch (args[0].toLowerCase()) {
+        case "findvillage":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to select villages!");
+            return true;
+          }
+          if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players!");
+            return true;
+          }
+          Player player = (Player) sender;
+          if (villageManager.findAndSelectVillage(player.getWorld())) {
+            sender.sendMessage("§aVillage found and selected!");
+            barrierManager.teleportToVillageCenter(player);
+          } else {
+            sender.sendMessage("§cNo valid village found nearby!");
+          }
+          break;
+        case "barrier":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage(
+              "§cYou don't have permission to control the barrier!"
+            );
+            return true;
+          }
+          if (!villageManager.getVillageCenter().isPresent()) {
+            sender.sendMessage(
+              "§cNo village selected! Use /bastion findvillage first."
+            );
+            return true;
+          }
+          if (barrierManager.isActive()) {
+            barrierManager.deactivate();
+            sender.sendMessage("§cBarrier deactivated.");
+          } else {
+            barrierManager.activate();
+            sender.sendMessage("§aBarrier activated!");
+          }
+          break;
+        case "start":
+          if (!sender.hasPermission("bastion.start")) {
+            sender.sendMessage("§cYou don't have permission to start waves!");
+            return true;
+          }
+          if (!villageManager.getVillageCenter().isPresent()) {
+            sender.sendMessage(
+              "§cNo village selected! Use /bastion findvillage first."
+            );
+            return true;
+          }
+          if (!barrierManager.isActive()) {
+            sender.sendMessage(
+              "§cBarrier must be active! Use /bastion barrier first."
+            );
+            return true;
+          }
+          gameStateManager.startGame();
+          statsManager.onGameStart();
+          sender.sendMessage("§aStarting new game...");
+          break;
+        case "stop":
+          if (!sender.hasPermission("bastion.stop")) {
+            sender.sendMessage("§cYou don't have permission to stop waves!");
+            return true;
+          }
+          gameStateManager.stopGame();
+          statsManager.onGameEnd();
+          sender.sendMessage("§cGame stopped.");
+          break;
+        case "upgrade":
+          if (args.length < 3) {
+            sender.sendMessage(
+              "§cUsage: /bastion upgrade <player|village> <type>"
+            );
+            return true;
+          }
+          if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players!");
+            return true;
+          }
+          handleUpgradeCommand((Player) sender, args[1], args[2]);
+          break;
+        case "upgrades":
+          if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players!");
+            return true;
+          }
+          showUpgrades((Player) sender);
+          break;
+        case "info":
+          showGameStatus(sender);
+          break;
+        default:
+          sender.sendMessage("§cUnknown command. Use /bastion for help.");
+          break;
+      }
+
       return true;
     }
 
-    switch (args[0].toLowerCase()) {
-      case "findvillage":
-        if (!sender.hasPermission("bastion.admin")) {
-          sender.sendMessage("§cYou don't have permission to select villages!");
-          return true;
-        }
-        if (!(sender instanceof Player)) {
-          sender.sendMessage("§cThis command can only be used by players!");
-          return true;
-        }
-        Player player = (Player) sender;
-        if (villageManager.findAndSelectVillage(player.getWorld())) {
-          sender.sendMessage("§aVillage found and selected!");
-          barrierManager.teleportToVillageCenter(player);
-        } else {
-          sender.sendMessage("§cNo valid village found nearby!");
-        }
-        break;
-      case "barrier":
-        if (!sender.hasPermission("bastion.admin")) {
-          sender.sendMessage(
-            "§cYou don't have permission to control the barrier!"
-          );
-          return true;
-        }
-        if (!villageManager.getVillageCenter().isPresent()) {
-          sender.sendMessage(
-            "§cNo village selected! Use /bastion findvillage first."
-          );
-          return true;
-        }
-        if (barrierManager.isActive()) {
-          barrierManager.deactivate();
-          sender.sendMessage("§cBarrier deactivated.");
-        } else {
-          barrierManager.activate();
-          sender.sendMessage("§aBarrier activated!");
-        }
-        break;
-      case "start":
-        if (!sender.hasPermission("bastion.start")) {
-          sender.sendMessage("§cYou don't have permission to start waves!");
-          return true;
-        }
-        if (!villageManager.getVillageCenter().isPresent()) {
-          sender.sendMessage(
-            "§cNo village selected! Use /bastion findvillage first."
-          );
-          return true;
-        }
-        if (!barrierManager.isActive()) {
-          sender.sendMessage(
-            "§cBarrier must be active! Use /bastion barrier first."
-          );
-          return true;
-        }
-        gameStateManager.startGame();
-        statsManager.onGameStart();
-        sender.sendMessage("§aStarting new game...");
-        break;
-      case "stop":
-        if (!sender.hasPermission("bastion.stop")) {
-          sender.sendMessage("§cYou don't have permission to stop waves!");
-          return true;
-        }
-        gameStateManager.stopGame();
-        statsManager.onGameEnd();
-        sender.sendMessage("§cGame stopped.");
-        break;
-      case "upgrade":
-        if (args.length < 3) {
-          sender.sendMessage(
-            "§cUsage: /bastion upgrade <player|village> <type>"
-          );
-          return true;
-        }
-        if (!(sender instanceof Player)) {
-          sender.sendMessage("§cThis command can only be used by players!");
-          return true;
-        }
-        handleUpgradeCommand((Player) sender, args[1], args[2]);
-        break;
-      case "upgrades":
-        if (!(sender instanceof Player)) {
-          sender.sendMessage("§cThis command can only be used by players!");
-          return true;
-        }
-        showUpgrades((Player) sender);
-        break;
-      case "info":
-        showGameStatus(sender);
-        break;
-      default:
-        sender.sendMessage("§cUnknown command. Use /bastion for help.");
-        break;
-    }
-
-    return true;
+    return false;
   }
 
   @EventHandler

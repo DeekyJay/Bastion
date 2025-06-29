@@ -14,12 +14,12 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 import city.emerald.bastion.Bastion;
-import city.emerald.bastion.wave.WaveManager;
+import city.emerald.bastion.game.GameStateManager;
 
 public class LootManager {
 
   private final Bastion plugin;
-  private final WaveManager waveManager;
+  private final GameStateManager gameStateManager;
   private final Random random;
 
   // Helper class for loot table entries
@@ -94,9 +94,9 @@ public class LootManager {
     ));
   }
 
-  public LootManager(Bastion plugin, WaveManager waveManager) {
+  public LootManager(Bastion plugin, GameStateManager gameStateManager) {
     this.plugin = plugin;
-    this.waveManager = waveManager;
+    this.gameStateManager = gameStateManager;
     this.random = new Random();
   }
 
@@ -110,7 +110,7 @@ public class LootManager {
 
     // For now, let's use a default multiplier and always check for bonus items.
     // This can be customized later based on game state or other factors.
-    int currentWave = waveManager.getCurrentWave();
+    int currentWave = gameStateManager.getCurrentWaveNumber();
     double multiplier = 1.0 + (0.1 * currentWave);
     boolean includeBonusItems = currentWave % 5 == 0; // Include bonus items every 5 waves
 
@@ -168,7 +168,7 @@ public class LootManager {
    */
   public int calculateWaveBonus() {
     int baseEmeralds = 5;
-    int waveBonus = waveManager.getCurrentWave();
+    int waveBonus = gameStateManager.getCurrentWaveNumber();
     return baseEmeralds + (int) (waveBonus * 1.5);
   }
 }

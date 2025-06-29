@@ -1,20 +1,25 @@
 # Bastion Plugin Configuration
 
+admins:
+  - "QED"
+  - "DeekyJ"
+  - "spraguerilla"
+
 wave:
-  # Base number of mobs per wave (before player scaling)
+  # UNUSED: Base number of mobs per wave (before player scaling)
   base-mob-count: 10
-  # Additional mobs per player
+  # UNUSED: Additional mobs per player
   mobs-per-player: 2
-  # Base difficulty multiplier per wave
+  # UNUSED: Base difficulty multiplier per wave
   difficulty-multiplier: 1.5
-  # Mob stat scaling
+  # UNUSED: Mob stat scaling
   scaling:
     health: 1.5
     damage: 1.5
-  # Player count scaling
+  # UNUSED: Player count scaling
   player-scaling:
     mob-health: 0.3  # Additional 30% health per player
-  # Wave completion requirements
+  # UNUSED: Wave completion requirements
   completion:
     require-all-mobs-defeated: true
 
@@ -26,7 +31,7 @@ village:
     # Barrier visualization settings
     dome-shape: true  # Use 3D dome instead of cylindrical wall
     show-underground: true  # Show particles below ground in air blocks
-  # Villager settings
+  # UNUSED: Villager settings
   villagers:
     health-multiplier: 2.0
     regeneration:
@@ -34,12 +39,12 @@ village:
       amount: 1.0  # Hearts per second between waves
 
 economy:
-  # Base emerald values for different activities
+  # UNUSED: Base emerald values for different activities
   rewards:
     wave-completion: 5
     boss-wave-completion: 20
     villager-saved: 3
-  # Trading settings
+  # UNUSED: Trading settings
   trading:
     enhanced-trades-unlock-wave: 5
     boss-wave-special-trades: true
@@ -47,6 +52,7 @@ economy:
 # Visual and sound effects
 effects:
   barrier:
+    # UNUSED: Barrier particle effects
     visible: true
     particle-density: 1.0  # Increased for better dome visibility
     particle-spacing: 1  # Reduced spacing for denser barrier (was 2)
@@ -65,11 +71,12 @@ effects:
     # Color settings (R,G,B format)
     primary-color: "0,255,255"    # Bright cyan
     secondary-color: "255,255,0"  # Bright yellow for animation
+  # UNUSED: Wave start effects
   spawn:
     warning-sound: true
     warning-particles: true
 
-# Debug settings
+# UNUSED: Debug settings
 debug:
   enabled: false
   log-wave-stats: false

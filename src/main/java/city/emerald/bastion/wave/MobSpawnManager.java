@@ -1,26 +1,40 @@
 package city.emerald.bastion.wave;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.TreeSet;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
 import city.emerald.bastion.BarrierManager;
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
 import city.emerald.bastion.economy.LootManager;
-import java.util.*;
-import java.util.Iterator;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.*;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
-public class MobSpawnManager {
+public class MobSpawnManager implements Listener {
 
   private final Bastion plugin;
-  private final WaveManager waveManager;
+  private WaveManager waveManager;
   private final VillageManager villageManager;
   private final BarrierManager barrierManager;
   private final LootManager lootManager;
+  private MobAI mobAI;
   private final Random random;
   private BukkitTask spawnTask;
   private Map<LivingEntity, Long> spawnTimes;
@@ -60,19 +74,22 @@ public class MobSpawnManager {
 
   public MobSpawnManager(
     Bastion plugin,
-    WaveManager waveManager,
     VillageManager villageManager,
     BarrierManager barrierManager,
     LootManager lootManager
   ) {
     this.plugin = plugin;
-    this.waveManager = waveManager;
     this.villageManager = villageManager;
     this.barrierManager = barrierManager;
     this.lootManager = lootManager;
     this.random = new Random();
     this.spawnTimes = new HashMap<>();
     this.currentMobCount = 0;
+  }
+
+  public void setWaveManager(WaveManager waveManager) {
+    this.waveManager = waveManager;
+    this.mobAI = new MobAI(plugin, villageManager, waveManager);
   }
 
   public void startSpawning() {
@@ -315,5 +332,10 @@ public class MobSpawnManager {
 
   private String formatMobName(String name) {
     return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+  }
+
+  @EventHandler
+  public void onEntityDeath(EntityDeathEvent event) {
+    // Handle entity death event if needed
   }
 }

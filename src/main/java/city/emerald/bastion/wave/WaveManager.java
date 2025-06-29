@@ -6,12 +6,14 @@ import org.bukkit.potion.PotionEffectType;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
+import city.emerald.bastion.game.GameStateManager;
 
 public class WaveManager {
 
   private final Bastion plugin;
   private final VillageManager villageManager;
   private final LightningManager lightningManager;
+  private final GameStateManager gameStateManager;
   private WaveState waveState;
   private int currentWave;
   private int remainingMobs;
@@ -28,11 +30,13 @@ public class WaveManager {
   public WaveManager(
     Bastion plugin,
     VillageManager villageManager,
-    LightningManager lightningManager
+    LightningManager lightningManager,
+    GameStateManager gameStateManager
   ) {
     this.plugin = plugin;
     this.villageManager = villageManager;
     this.lightningManager = lightningManager;
+    this.gameStateManager = gameStateManager;
     this.waveState = WaveState.INACTIVE;
     this.currentWave = 0;
     this.remainingMobs = 0;
@@ -61,6 +65,7 @@ public class WaveManager {
         () -> {
           this.waveState = WaveState.ACTIVE;
           this.currentWave = waveNumber;
+          this.gameStateManager.setCurrentWaveNumber(waveNumber);
           this.remainingMobs = calculateMobCount(waveNumber);
           this.difficultyMultiplier = 1.0 + (waveNumber * 0.1);
 
