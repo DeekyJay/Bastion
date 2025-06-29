@@ -47,15 +47,21 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§aConfiguration saved: " + key + " = " + value);
                 break;
             case "get":
+                sender.sendMessage("§aFetching configuration value...");
                 if (args.length < 2) {
                     sender.sendMessage("§cUsage: /bastionconfig get <key>");
                     return true;
                 }
                 String getKey = args[1];
+                plugin.getLogger().info("[DEBUG] GET command received for key: '" + getKey + "'");
+
                 Object getValue = plugin.getConfig().get(getKey);
+
                 if (getValue != null) {
+                    plugin.getLogger().info("[DEBUG] Found value: '" + getValue.toString() + "' of type: " + getValue.getClass().getName());
                     sender.sendMessage("§a" + getKey + ": §f" + getValue.toString());
                 } else {
+                    plugin.getLogger().warning("[DEBUG] Key not found: '" + getKey + "'");
                     sender.sendMessage("§cKey not found: " + getKey);
                 }
                 break;
