@@ -34,7 +34,6 @@ public class MobSpawnManager implements Listener {
   private final VillageManager villageManager;
   private final BarrierManager barrierManager;
   private final LootManager lootManager;
-  private MobAI mobAI;
   private final Random random;
   private BukkitTask spawnTask;
   private Map<LivingEntity, Long> spawnTimes;
@@ -89,7 +88,6 @@ public class MobSpawnManager implements Listener {
 
   public void setWaveManager(WaveManager waveManager) {
     this.waveManager = waveManager;
-    this.mobAI = new MobAI(plugin, villageManager, waveManager);
   }
 
   public void startSpawning() {
