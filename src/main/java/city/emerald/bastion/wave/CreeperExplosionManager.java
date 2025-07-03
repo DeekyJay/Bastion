@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -47,7 +49,7 @@ public class CreeperExplosionManager implements Listener {
   }
 
   @EventHandler
-  public void onEntityTarget(EntityTargetEvent event) {
+  public void onEntityTarget(EntityTargetLivingEntityEvent event) {
     if (!enabled || event.isCancelled()) {
       return;
     }
@@ -56,11 +58,13 @@ public class CreeperExplosionManager implements Listener {
     if (!(event.getEntity() instanceof Creeper)) {
       return;
     }
+    //logToChat("Creeper target event");
 
     Creeper creeper = (Creeper) event.getEntity();
     
     // Check if target is a LivingEntity first
     if (!(event.getTarget() instanceof LivingEntity)) {
+      //logToChat("non-living");
       removeMonitor(creeper);
       return;
     }
@@ -70,6 +74,7 @@ public class CreeperExplosionManager implements Listener {
     // Only monitor if targeting a player or villager
     if (!(target instanceof Player) && !(target instanceof Villager)) {
       // Remove any existing monitor if creeper loses valid target
+      //logToChat("non-player-or-villager");
       removeMonitor(creeper);
       return;
     }
@@ -81,6 +86,9 @@ public class CreeperExplosionManager implements Listener {
     ProgressMonitor monitor = new ProgressMonitor(creeper, target);
     activeMonitors.put(creeper, monitor);
     monitor.start();
+
+    // Add logging when a creeper starts monitoring a target
+    //logToChat("Creeper started monitoring target: " + target.getName());
   }
 
   @EventHandler
@@ -112,6 +120,12 @@ public class CreeperExplosionManager implements Listener {
       monitor.cleanup();
     }
     activeMonitors.clear();
+  }
+
+  private void logToChat(String message) {
+    for (Player player : Bukkit.getOnlinePlayers()) {
+      player.sendMessage("[CreeperExplosionManager Debug] " + message);
+    }
   }
 
   private class ProgressMonitor {
@@ -146,11 +160,15 @@ public class CreeperExplosionManager implements Listener {
           if (creeper.isValid() && !creeper.isDead()) {
             // Force explosion
             creeper.explode();
-            plugin.getLogger().info("Creeper exploded due to pathfinding obstruction");
+            //logToChat("Creeper exploded due to pathfinding obstruction at " + creeper.getLocation());
+          } else {
+            //logToChat("Creeper explosion task canceled because creeper is invalid or dead.");
           }
           cleanup();
         }
       }.runTaskLater(plugin, countdownSeconds * 20L); // Convert seconds to ticks
+
+      //logToChat("Countdown task started for creeper at " + creeper.getLocation());
     }
 
     private void startProgressCheckTask() {
@@ -193,22 +211,31 @@ public class CreeperExplosionManager implements Listener {
       // Clear position history and add current block key
       recentBlockPositions.clear();
       recentBlockPositions.addLast(creeper.getLocation().toBlockKey());
+
+      // Add logging when progress is reset
+      //logToChat("Creeper progress reset.");
     }
 
     private boolean hasProgress() {
       long currentBlockKey = creeper.getLocation().toBlockKey();
-      
+
       // Check if current block key is different from any recent positions
       boolean hasNewPosition = !recentBlockPositions.contains(currentBlockKey);
-      
+
       // Add current position to end of deque
       recentBlockPositions.addLast(currentBlockKey);
-      
+
       // Maintain deque size by removing from front
       while (recentBlockPositions.size() > positionHistorySize) {
         recentBlockPositions.removeFirst();
       }
-      
+
+      if (hasNewPosition) {
+        //logToChat("Creeper detected progress at " + creeper.getLocation());
+      } else {
+        //logToChat("No progress detected for creeper at " + creeper.getLocation());
+      }
+
       return hasNewPosition;
     }
 

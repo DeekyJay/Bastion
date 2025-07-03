@@ -26,6 +26,7 @@ import org.bukkit.util.Vector;
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
 import city.emerald.bastion.game.GameStateManager;
+import net.md_5.bungee.api.ChatColor;
 
 public class MobAI implements Listener {
 
@@ -153,33 +154,35 @@ public class MobAI implements Listener {
         continue;
       }
 
-      if (player != null && player.getLocation() != null) {
-        double distance = mobLoc.distance(player.getLocation());
-        if (distance > maxTargetDistance) {
-          continue;
-        }
+      if (player != null) {
+        Location playerLocation = player.getLocation();
+        if (playerLocation != null) {
+          double distance = mobLoc.distance(playerLocation);
+          if (distance > maxTargetDistance) {
+            continue;
+          }
 
-        double score = playerTargetWeight * (1.0 - (distance / maxTargetDistance));
-        if (score > bestScore) {
-          bestScore = score;
-          bestTarget = player;
+          double score = playerTargetWeight * (1.0 - (distance / maxTargetDistance));
+          if (score > bestScore) {
+            bestScore = score;
+            bestTarget = player;
+          }
         }
       }
     }
 
     // Consider villagers
     for (Villager villager : villageManager.getRegisteredVillagers()) {
-        if (villager != null && villager.getLocation() != null) {
-            double distance = mobLoc.distance(villager.getLocation());
-            if (distance > maxTargetDistance) {
-                continue;
-            }
+        Location villagerLocation = villager.getLocation();
+        double distance = mobLoc.distance(villagerLocation);
+        if (distance > maxTargetDistance) {
+            continue;
+        }
 
-            double score = villagerTargetWeight * (1.0 - (distance / maxTargetDistance));
-            if (score > bestScore) {
-                bestScore = score;
-                bestTarget = villager;
-            }
+        double score = villagerTargetWeight * (1.0 - (distance / maxTargetDistance));
+        if (score > bestScore) {
+            bestScore = score;
+            bestTarget = villager;
         }
     }
 
@@ -256,7 +259,18 @@ public class MobAI implements Listener {
 
         LivingEntity hiddenEntity = findHiddenEntityNearby(creeper);
         if (hiddenEntity != null) {
-          creeper.setTarget(hiddenEntity);
+          EntityTargetLivingEntityEvent event = new EntityTargetLivingEntityEvent(
+            creeper,
+            hiddenEntity,
+            EntityTargetEvent.TargetReason.CUSTOM
+          );
+
+          Bukkit.getPluginManager().callEvent(event);
+
+          if (!event.isCancelled()) {
+            creeper.setTarget(event.getTarget());
+            //logToChat("Creeper set target to hidden entity: " + event.getTarget().getName());
+          }
         }
       }
     }
@@ -307,5 +321,11 @@ public class MobAI implements Listener {
       entity instanceof Slime ||
       entity instanceof Flying
     );
+  }
+
+  private void logToChat(String message) {
+    for (Player player : Bukkit.getOnlinePlayers()) {
+        player.sendMessage(ChatColor.GREEN + "[MobAI Debug] " + message);
+    }
   }
 }
