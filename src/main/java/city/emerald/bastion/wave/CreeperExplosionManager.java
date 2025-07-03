@@ -1,5 +1,7 @@
 package city.emerald.bastion.wave;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,7 +16,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Vector;
 
 import city.emerald.bastion.Bastion;
 
@@ -27,7 +28,7 @@ public class CreeperExplosionManager implements Listener {
   private boolean enabled;
   private int countdownSeconds;
   private int progressCheckInterval; // in ticks
-  private double movementThreshold;
+  private int positionHistorySize;
 
   public CreeperExplosionManager(Bastion plugin) {
     this.plugin = plugin;
@@ -42,7 +43,7 @@ public class CreeperExplosionManager implements Listener {
     this.enabled = plugin.getConfig().getBoolean("creeper-explosion.enabled", true);
     this.countdownSeconds = plugin.getConfig().getInt("creeper-explosion.countdown-seconds", 5);
     this.progressCheckInterval = plugin.getConfig().getInt("creeper-explosion.progress-check-interval", 20);
-    this.movementThreshold = plugin.getConfig().getDouble("creeper-explosion.movement-threshold", 0.5);
+    this.positionHistorySize = plugin.getConfig().getInt("creeper-explosion.position-history-size", 3);
   }
 
   @EventHandler
@@ -120,15 +121,14 @@ public class CreeperExplosionManager implements Listener {
     private BukkitTask progressCheckTask;
     
     // Progress tracking fields
-    private double lastMinDistance;
-    private Vector lastCreeperPosition;
-    private Vector lastTargetPosition;
+    private final Deque<Long> recentBlockPositions;
     private boolean isPreExplosion;
 
     public ProgressMonitor(Creeper creeper, LivingEntity target) {
       this.creeper = creeper;
       this.target = target;
       this.isPreExplosion = false;
+      this.recentBlockPositions = new LinkedList<>();
       
       // Initialize tracking values
       resetProgress();
@@ -190,16 +190,26 @@ public class CreeperExplosionManager implements Listener {
     }
 
     private void resetProgress() {
-      // Reset all progress tracking variables to current state
-      this.lastMinDistance = creeper.getLocation().distance(target.getLocation());
-      this.lastCreeperPosition = creeper.getLocation().toVector();
-      this.lastTargetPosition = target.getLocation().toVector();
+      // Clear position history and add current block key
+      recentBlockPositions.clear();
+      recentBlockPositions.addLast(creeper.getLocation().toBlockKey());
     }
 
     private boolean hasProgress() {
-      // TODO: Implement progress detection logic
-      // For now, return true to prevent explosions during development
-      return true;
+      long currentBlockKey = creeper.getLocation().toBlockKey();
+      
+      // Check if current block key is different from any recent positions
+      boolean hasNewPosition = !recentBlockPositions.contains(currentBlockKey);
+      
+      // Add current position to end of deque
+      recentBlockPositions.addLast(currentBlockKey);
+      
+      // Maintain deque size by removing from front
+      while (recentBlockPositions.size() > positionHistorySize) {
+        recentBlockPositions.removeFirst();
+      }
+      
+      return hasNewPosition;
     }
 
     public void cleanup() {

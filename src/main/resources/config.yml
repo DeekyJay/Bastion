@@ -81,7 +81,7 @@ creeper-explosion:
   enabled: true
   countdown-seconds: 5  # How long creeper waits before exploding if no progress
   progress-check-interval: 20  # How often to check for progress (in ticks, 20 = 1 second)
-  movement-threshold: 0.5  # Minimum distance moved to count as progress (in blocks)
+  position-history-size: 3  # Number of recent block positions to track for progress detection
 
 # UNUSED: Debug settings
 debug:
