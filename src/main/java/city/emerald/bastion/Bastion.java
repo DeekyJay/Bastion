@@ -45,6 +45,7 @@ public final class Bastion extends JavaPlugin implements Listener {
   private UpgradeManager upgradeManager;
   private LightningManager lightningManager;
   private CreeperExplosionManager creeperExplosionManager;
+  private int creeperVisionRadius;
 
   @Override
   public void onEnable() {
@@ -52,6 +53,9 @@ public final class Bastion extends JavaPlugin implements Listener {
     logger = getLogger();
     saveDefaultConfig();
     config = getConfig();
+
+    // Load configuration
+    creeperVisionRadius = getConfig().getInt("mob-ai.creeper-vision-radius", 10);
 
     // Initialize managers in the correct order to resolve dependencies
     // 1. Standalone managers
@@ -450,5 +454,9 @@ public final class Bastion extends JavaPlugin implements Listener {
         );
       }
     }
+  }
+
+  public int getCreeperVisionRadius() {
+    return creeperVisionRadius;
   }
 }

@@ -83,6 +83,9 @@ creeper-explosion:
   progress-check-interval: 20  # How often to check for progress (in ticks, 20 = 1 second)
   position-history-size: 3  # Number of recent block positions to track for progress detection
 
+mob-ai:
+  creeper-vision-radius: 10  # Creepers can detect players/villagers within 10 blocks, even through walls
+
 # UNUSED: Debug settings
 debug:
   enabled: false
