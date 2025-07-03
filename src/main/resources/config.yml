@@ -76,6 +76,13 @@ effects:
     warning-sound: true
     warning-particles: true
 
+# Creeper explosion behavior settings
+creeper-explosion:
+  enabled: true
+  countdown-seconds: 5  # How long creeper waits before exploding if no progress
+  progress-check-interval: 20  # How often to check for progress (in ticks, 20 = 1 second)
+  movement-threshold: 0.5  # Minimum distance moved to count as progress (in blocks)
+
 # UNUSED: Debug settings
 debug:
   enabled: false
