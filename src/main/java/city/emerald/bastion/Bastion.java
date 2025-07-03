@@ -22,6 +22,7 @@ import city.emerald.bastion.economy.UpgradeManager;
 import city.emerald.bastion.game.GameStateManager;
 import city.emerald.bastion.game.StatsManager;
 import city.emerald.bastion.game.UIManager;
+import city.emerald.bastion.wave.CreeperExplosionManager;
 import city.emerald.bastion.wave.LightningManager;
 import city.emerald.bastion.wave.MobAI;
 import city.emerald.bastion.wave.MobSpawnManager;
@@ -43,6 +44,7 @@ public final class Bastion extends JavaPlugin implements Listener {
   private TradeManager tradeManager;
   private UpgradeManager upgradeManager;
   private LightningManager lightningManager;
+  private CreeperExplosionManager creeperExplosionManager;
 
   @Override
   public void onEnable() {
@@ -66,6 +68,7 @@ public final class Bastion extends JavaPlugin implements Listener {
     tradeManager = new TradeManager(this, villageManager, waveManager);
     upgradeManager = new UpgradeManager(this, villageManager);
     uiManager = new UIManager(this, waveManager, villageManager, gameStateManager);
+    creeperExplosionManager = new CreeperExplosionManager(this);
 
     // 3. Inject dependencies using setters to break circular dependencies
     gameStateManager.setWaveManager(waveManager);
@@ -110,6 +113,7 @@ public final class Bastion extends JavaPlugin implements Listener {
     }
     uiManager.cleanup();
     statsManager.saveStats();
+    creeperExplosionManager.cleanup();
 
     logger.info("Bastion plugin disabled successfully!");
   }
