@@ -36,6 +36,8 @@ public class MobAI implements Listener {
   private static final double TARGET_SWITCH_CHANCE = 0.1;
   private static final double MAX_TARGET_DISTANCE = 50.0;
 
+  private final int creeperVisionRadius;
+
   public MobAI(
     Bastion plugin,
     VillageManager villageManager,
@@ -45,6 +47,7 @@ public class MobAI implements Listener {
     this.villageManager = villageManager;
     this.gameStateManager = gameStateManager;
     this.random = new Random();
+    this.creeperVisionRadius = plugin.getConfig().getInt("mob-ai.creeper-vision-radius", 10);
 
     // Register events
     Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -191,7 +194,7 @@ public class MobAI implements Listener {
   @EventHandler
   public void onEntityTarget(EntityTargetEvent event) {
     if (
-      !gameStateManager.isWaveActive() || !(event.getEntity() instanceof Monster)
+      gameStateManager.getCurrentState() != GameStateManager.GameState.ACTIVE || !(event.getEntity() instanceof Monster)
     ) {
       return;
     }
@@ -206,6 +209,24 @@ public class MobAI implements Listener {
         event.setCancelled(true);
       }
     }
+
+    if (!(event.getEntity() instanceof org.bukkit.entity.Creeper)) {
+      return;
+    }
+
+    org.bukkit.entity.Creeper creeper = (org.bukkit.entity.Creeper) event.getEntity();
+    Location creeperLocation = creeper.getLocation();
+    World world = creeperLocation.getWorld();
+
+    // Find nearby players and villagers within the creeper vision radius
+    world.getNearbyEntities(creeperLocation, creeperVisionRadius, creeperVisionRadius, creeperVisionRadius)
+        .stream()
+        .filter(entity -> entity instanceof Player || entity instanceof Villager)
+        .findFirst()
+        .ifPresent(target -> {
+            event.setTarget((LivingEntity) target);
+            plugin.getLogger().info("Creeper targeting entity through solid blocks: " + target);
+        });
   }
 
   private boolean isHostileMob(Entity entity) {
