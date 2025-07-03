@@ -22,12 +22,13 @@ import org.bukkit.util.Vector;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
+import city.emerald.bastion.game.GameStateManager;
 
 public class MobAI implements Listener {
 
   private final Bastion plugin;
   private final VillageManager villageManager;
-  private final WaveManager waveManager;
+  private final GameStateManager gameStateManager;
   private final Random random;
 
   private static final double PLAYER_TARGET_WEIGHT = 0.7;
@@ -38,11 +39,11 @@ public class MobAI implements Listener {
   public MobAI(
     Bastion plugin,
     VillageManager villageManager,
-    WaveManager waveManager
+    GameStateManager gameStateManager
   ) {
     this.plugin = plugin;
     this.villageManager = villageManager;
-    this.waveManager = waveManager;
+    this.gameStateManager = gameStateManager;
     this.random = new Random();
 
     // Register events
@@ -56,7 +57,7 @@ public class MobAI implements Listener {
     new BukkitRunnable() {
       @Override
       public void run() {
-        if (!waveManager.isWaveActive()) {
+        if (gameStateManager.getCurrentState() != GameStateManager.GameState.ACTIVE) {
           return;
         }
         updateAllMobAI();
@@ -190,7 +191,7 @@ public class MobAI implements Listener {
   @EventHandler
   public void onEntityTarget(EntityTargetEvent event) {
     if (
-      !waveManager.isWaveActive() || !(event.getEntity() instanceof Monster)
+      !gameStateManager.isWaveActive() || !(event.getEntity() instanceof Monster)
     ) {
       return;
     }
