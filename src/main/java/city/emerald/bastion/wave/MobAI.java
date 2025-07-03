@@ -3,9 +3,11 @@ package city.emerald.bastion.wave;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Creature;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Flying;
 import org.bukkit.entity.LivingEntity;
@@ -17,46 +19,68 @@ import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import city.emerald.bastion.Bastion;
 import city.emerald.bastion.VillageManager;
+import city.emerald.bastion.game.GameStateManager;
+import net.md_5.bungee.api.ChatColor;
 
 public class MobAI implements Listener {
 
   private final Bastion plugin;
   private final VillageManager villageManager;
-  private final WaveManager waveManager;
+  private final GameStateManager gameStateManager;
   private final Random random;
 
-  private static final double PLAYER_TARGET_WEIGHT = 0.7;
-  private static final double VILLAGER_TARGET_WEIGHT = 0.3;
-  private static final double TARGET_SWITCH_CHANCE = 0.1;
-  private static final double MAX_TARGET_DISTANCE = 50.0;
+  private final double playerTargetWeight;
+  private final double villagerTargetWeight;
+  private final double targetSwitchChance;
+  private final double maxTargetDistance;
+  private final long scanIntervalTicks;
+
+  private final int creeperVisionRadius;
 
   public MobAI(
     Bastion plugin,
     VillageManager villageManager,
-    WaveManager waveManager
+    GameStateManager gameStateManager
   ) {
     this.plugin = plugin;
     this.villageManager = villageManager;
-    this.waveManager = waveManager;
+    this.gameStateManager = gameStateManager;
     this.random = new Random();
 
-    // Register events
-    Bukkit.getPluginManager().registerEvents(this, plugin);
+    this.creeperVisionRadius = plugin.getConfig().getInt("mob-ai.creeper-vision-radius", 10);
+    this.playerTargetWeight = plugin.getConfig().getDouble("mob-ai.player-target-weight", 0.7);
+    this.villagerTargetWeight = plugin.getConfig().getDouble("mob-ai.villager-target-weight", 0.3);
+    this.targetSwitchChance = plugin.getConfig().getDouble("mob-ai.target-switch-chance", 0.1);
+    this.maxTargetDistance = plugin.getConfig().getDouble("mob-ai.max-target-distance", 50.0);
+    this.scanIntervalTicks = plugin.getConfig().getLong("mob-ai.scan-interval-ticks", 100);
 
     // Start AI update task
     startAIUpdateTask();
+
+    // Start the periodic task
+    new BukkitRunnable() {
+      @Override
+      public void run() {
+        scanForTargets();
+      }
+    }.runTaskTimer(plugin, 0L, scanIntervalTicks);
+  }
+
+  public void registerEvents() {
+    Bukkit.getPluginManager().registerEvents(this, plugin);
   }
 
   private void startAIUpdateTask() {
     new BukkitRunnable() {
       @Override
       public void run() {
-        if (!waveManager.isWaveActive()) {
+        if (gameStateManager.getCurrentState() != GameStateManager.GameState.ACTIVE) {
           return;
         }
         updateAllMobAI();
@@ -85,7 +109,7 @@ public class MobAI implements Listener {
     // Skip if mob already has a valid target
     if (hasValidTarget(mob)) {
       // Chance to switch targets
-      if (random.nextDouble() > TARGET_SWITCH_CHANCE) {
+      if (random.nextDouble() > targetSwitchChance) {
         return;
       }
     }
@@ -115,7 +139,7 @@ public class MobAI implements Listener {
     }
 
     return (
-      mob.getLocation().distance(target.getLocation()) <= MAX_TARGET_DISTANCE
+      mob.getLocation().distance(target.getLocation()) <= maxTargetDistance
     );
   }
 
@@ -130,36 +154,36 @@ public class MobAI implements Listener {
         continue;
       }
 
-      double distance = mobLoc.distance(player.getLocation());
-      if (distance > MAX_TARGET_DISTANCE) {
-        continue;
-      }
+      if (player != null) {
+        Location playerLocation = player.getLocation();
+        if (playerLocation != null) {
+          double distance = mobLoc.distance(playerLocation);
+          if (distance > maxTargetDistance) {
+            continue;
+          }
 
-      double score =
-        PLAYER_TARGET_WEIGHT * (1.0 - (distance / MAX_TARGET_DISTANCE));
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = player;
+          double score = playerTargetWeight * (1.0 - (distance / maxTargetDistance));
+          if (score > bestScore) {
+            bestScore = score;
+            bestTarget = player;
+          }
+        }
       }
     }
 
     // Consider villagers
     for (Villager villager : villageManager.getRegisteredVillagers()) {
-      if (!villager.isValid() || villager.isDead()) {
-        continue;
-      }
+        Location villagerLocation = villager.getLocation();
+        double distance = mobLoc.distance(villagerLocation);
+        if (distance > maxTargetDistance) {
+            continue;
+        }
 
-      double distance = mobLoc.distance(villager.getLocation());
-      if (distance > MAX_TARGET_DISTANCE) {
-        continue;
-      }
-
-      double score =
-        VILLAGER_TARGET_WEIGHT * (1.0 - (distance / MAX_TARGET_DISTANCE));
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = villager;
-      }
+        double score = villagerTargetWeight * (1.0 - (distance / maxTargetDistance));
+        if (score > bestScore) {
+            bestScore = score;
+            bestTarget = villager;
+        }
     }
 
     return bestTarget;
@@ -190,20 +214,104 @@ public class MobAI implements Listener {
   @EventHandler
   public void onEntityTarget(EntityTargetEvent event) {
     if (
-      !waveManager.isWaveActive() || !(event.getEntity() instanceof Monster)
+      gameStateManager.getCurrentState() != GameStateManager.GameState.ACTIVE || !(event.getEntity() instanceof Monster)
     ) {
       return;
     }
 
     // Allow natural targeting but modify weights
     if (event.getTarget() instanceof Player) {
-      if (random.nextDouble() > PLAYER_TARGET_WEIGHT) {
+      if (random.nextDouble() > playerTargetWeight) {
         event.setCancelled(true);
       }
     } else if (event.getTarget() instanceof Villager) {
-      if (random.nextDouble() > VILLAGER_TARGET_WEIGHT) {
+      if (random.nextDouble() > villagerTargetWeight) {
         event.setCancelled(true);
       }
+    }
+
+    if (!(event.getEntity() instanceof org.bukkit.entity.Creeper)) {
+      return;
+    }
+
+    org.bukkit.entity.Creeper creeper = (org.bukkit.entity.Creeper) event.getEntity();
+    Location creeperLocation = creeper.getLocation();
+    World world = creeperLocation.getWorld();
+
+    // Find nearby players and villagers within the creeper vision radius
+    world.getNearbyEntities(creeperLocation, creeperVisionRadius, creeperVisionRadius, creeperVisionRadius)
+        .stream()
+        .filter(entity -> entity instanceof Player || entity instanceof Villager)
+        .findFirst()
+        .ifPresent(target -> {
+            event.setTarget((LivingEntity) target);
+            plugin.getLogger().info(String.format("Creeper targeting entity through solid blocks: %s", target));
+        });
+  }
+
+  private void scanForTargets() {
+    for (World world : Bukkit.getWorlds()) {
+      for (LivingEntity entity : world.getLivingEntities()) {
+        if (!(entity instanceof Creeper creeper)) continue;
+
+        // Skip creepers that already have a valid target
+        if (creeper.getTarget() != null && creeper.getTarget().isValid() && !creeper.getTarget().isDead()) continue;
+
+        LivingEntity hiddenEntity = findHiddenEntityNearby(creeper);
+        if (hiddenEntity != null) {
+          EntityTargetLivingEntityEvent event = new EntityTargetLivingEntityEvent(
+            creeper,
+            hiddenEntity,
+            EntityTargetEvent.TargetReason.CUSTOM
+          );
+
+          Bukkit.getPluginManager().callEvent(event);
+
+          if (!event.isCancelled()) {
+            creeper.setTarget(event.getTarget());
+            //logToChat("Creeper set target to hidden entity: " + event.getTarget().getName());
+          }
+        }
+      }
+    }
+  }
+
+  private LivingEntity findHiddenEntityNearby(Creeper creeper) {
+    Location creepLoc = creeper.getLocation();
+    double radiusSquared = creeperVisionRadius * creeperVisionRadius;
+
+    for (Player player : creepLoc.getWorld().getPlayers()) {
+      if (!player.isValid() || player.isDead()) continue;
+      if (player.getGameMode() != GameMode.SURVIVAL) continue;
+      if (creepLoc.distanceSquared(player.getLocation()) > radiusSquared) continue;
+
+      // Only target if player is hidden
+      if (!creeper.hasLineOfSight(player)) {
+        return player;
+      }
+    }
+
+    for (LivingEntity entity : creepLoc.getWorld().getLivingEntities()) {
+      if (!(entity instanceof Villager villager)) continue;
+      if (!villager.isValid() || villager.isDead()) continue;
+      if (creepLoc.distanceSquared(villager.getLocation()) > radiusSquared) continue;
+
+      // Only target if villager is hidden
+      if (!creeper.hasLineOfSight(villager)) {
+        return villager;
+      }
+    }
+
+    return null;
+  }
+
+  @EventHandler
+  public void onTarget(EntityTargetLivingEntityEvent event) {
+    if (!(event.getEntity() instanceof Creeper creeper)) return;
+    if (!(event.getTarget() instanceof LivingEntity target)) return;
+
+    if (!creeper.hasLineOfSight(target)) {
+      event.setTarget(target); // override targeting
     }
   }
 
@@ -213,5 +321,11 @@ public class MobAI implements Listener {
       entity instanceof Slime ||
       entity instanceof Flying
     );
+  }
+
+  private void logToChat(String message) {
+    for (Player player : Bukkit.getOnlinePlayers()) {
+        player.sendMessage(ChatColor.GREEN + "[MobAI Debug] " + message);
+    }
   }
 }

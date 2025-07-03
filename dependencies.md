@@ -1,4 +1,7 @@
 # Dependency Diagram
+
+## Original graph with circular dependencies
+
 ``` mermaid
 graph TD
     subgraph "Core Instantiation"
@@ -54,6 +57,8 @@ graph TD
 
 ```
 
+## Fixed circular dependencies using the GameStateManager for globally shared state
+
 ``` mermaid
 graph TD
     subgraph "Core Instantiation"
@@ -78,6 +83,7 @@ graph TD
         H[WorldListener]
         I[BarrierManager]
         J[VillageManager]
+        K[MobAI]
     end
 
     Bastion --> GSM
@@ -91,6 +97,7 @@ graph TD
     Bastion --> H
     Bastion --> I
     Bastion --> J
+    Bastion --> K
 
     A -- "Needs to start spawning" --> B
     B -- "Needs to handle loot drops" --> C
@@ -108,6 +115,8 @@ graph TD
     G --> GSM
     H --> J
     I --> J
+    K --> J
+    K --> GSM
 
     style C fill:#99ff99,stroke:#333,stroke-width:2px
     style GSM fill:#99ff99,stroke:#333,stroke-width:2px

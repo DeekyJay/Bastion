@@ -64,11 +64,19 @@ public final class Bastion extends JavaPlugin implements Listener {
     lightningManager = new LightningManager(this, barrierManager);
     waveManager = new WaveManager(this, villageManager, lightningManager, gameStateManager);
     lootManager = new LootManager(this, gameStateManager);
+
+    // Initialize MobSpawnManager
     mobSpawnManager = new MobSpawnManager(this, villageManager, barrierManager, lootManager);
+    mobSpawnManager.setWaveManager(waveManager);
+  
     tradeManager = new TradeManager(this, villageManager, waveManager);
     upgradeManager = new UpgradeManager(this, villageManager);
     uiManager = new UIManager(this, waveManager, villageManager, gameStateManager);
     creeperExplosionManager = new CreeperExplosionManager(this);
+
+    // Initialize MobAI
+    mobAI = new MobAI(this, villageManager, gameStateManager);
+    getServer().getPluginManager().registerEvents(mobAI, this);
 
     // 3. Inject dependencies using setters to break circular dependencies
     gameStateManager.setWaveManager(waveManager);
