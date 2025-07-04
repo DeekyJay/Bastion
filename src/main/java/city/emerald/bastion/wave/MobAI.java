@@ -53,12 +53,12 @@ public class MobAI implements Listener {
     this.gameStateManager = gameStateManager;
     this.random = new Random();
 
-    this.creeperVisionRadius = plugin.getConfig().getInt("mob-ai.creeper-vision-radius", 10);
-    this.playerTargetWeight = plugin.getConfig().getDouble("mob-ai.player-target-weight", 0.7);
-    this.villagerTargetWeight = plugin.getConfig().getDouble("mob-ai.villager-target-weight", 0.3);
-    this.targetSwitchChance = plugin.getConfig().getDouble("mob-ai.target-switch-chance", 0.1);
-    this.maxTargetDistance = plugin.getConfig().getDouble("mob-ai.max-target-distance", 50.0);
-    this.scanIntervalTicks = plugin.getConfig().getLong("mob-ai.scan-interval-ticks", 100);
+    this.creeperVisionRadius = plugin.getConfig().getInt("mob_ai.creeper_vision_radius", 10);
+    this.playerTargetWeight = plugin.getConfig().getDouble("mob_ai.player_target_weight", 0.7);
+    this.villagerTargetWeight = plugin.getConfig().getDouble("mob_ai.villager_target_weight", 0.3);
+    this.targetSwitchChance = plugin.getConfig().getDouble("mob_ai.target_switch_chance", 0.1);
+    this.maxTargetDistance = plugin.getConfig().getDouble("mob_ai.max_target_distance", 50.0);
+    this.scanIntervalTicks = plugin.getConfig().getLong("mob_ai.scan_interval_ticks", 100);
 
     // Start AI update task
     startAIUpdateTask();

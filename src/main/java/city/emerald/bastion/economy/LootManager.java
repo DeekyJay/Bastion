@@ -47,14 +47,14 @@ public class LootManager {
     this.random = new Random();
 
     // Retrieve configuration values
-    double commonLootProbability = plugin.getConfig().getDouble("common-loot-probability", 0.05);
-    int commonLootMaxItems = plugin.getConfig().getInt("common-loot-max-items", 5);
-    double bonusLootProbability = plugin.getConfig().getDouble("bonus-loot-probability", 0.01);
-    int bonusLootMaxItems = plugin.getConfig().getInt("bonus-loot-max-items", 2);
+    double commonLootProbability = plugin.getConfig().getDouble("loot_table_settings.common_loot_probability", 0.05);
+    int commonLootMaxItems = plugin.getConfig().getInt("loot_table_settings.common_loot_max_items", 5);
+    double bonusLootProbability = plugin.getConfig().getDouble("loot_table_settings.bonus_loot_probability", 0.01);
+    int bonusLootMaxItems = plugin.getConfig().getInt("loot_table_settings.bonus_loot_max_items", 2);
 
     // Load loot tables from config
-    commonLootTable = buildLootTable("common-loot", commonLootProbability, commonLootMaxItems);
-    bonusLootTable = buildLootTable("bonus-loot", bonusLootProbability, bonusLootMaxItems);
+    commonLootTable = buildLootTable("common_loot", commonLootProbability, commonLootMaxItems);
+    bonusLootTable = buildLootTable("bonus_loot", bonusLootProbability, bonusLootMaxItems);
   }
 
   public void handleMobDeath(EntityDeathEvent event) {
