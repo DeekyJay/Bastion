@@ -7,21 +7,21 @@ admins:
 
 wave:
   # UNUSED: Base number of mobs per wave (before player scaling)
-  base-mob-count: 10
+  base_mob_count: 10
   # UNUSED: Additional mobs per player
-  mobs-per-player: 2
+  mobs_per_player: 2
   # UNUSED: Base difficulty multiplier per wave
-  difficulty-multiplier: 1.5
+  difficulty_multiplier: 1.5
   # UNUSED: Mob stat scaling
   scaling:
     health: 1.5
     damage: 1.5
   # UNUSED: Player count scaling
-  player-scaling:
-    mob-health: 0.3  # Additional 30% health per player
+  player_scaling:
+    mob_health: 0.3  # Additional 30% health per player
   # UNUSED: Wave completion requirements
   completion:
-    require-all-mobs-defeated: true
+    require_all_mobs_defeated: true
 
 village:
   # Barrier dimensions (in blocks)
@@ -29,11 +29,11 @@ village:
     radius: 80  # Changed from size: 200 to radius: 80 (160x160 area)
     height: 256
     # Barrier visualization settings
-    dome-shape: true  # Use 3D dome instead of cylindrical wall
-    show-underground: true  # Show particles below ground in air blocks
+    dome_shape: true  # Use 3D dome instead of cylindrical wall
+    show_underground: true  # Show particles below ground in air blocks
   # UNUSED: Villager settings
   villagers:
-    health-multiplier: 2.0
+    health_multiplier: 2.0
     regeneration:
       enabled: true
       amount: 1.0  # Hearts per second between waves
@@ -41,57 +41,79 @@ village:
 economy:
   # UNUSED: Base emerald values for different activities
   rewards:
-    wave-completion: 5
-    boss-wave-completion: 20
-    villager-saved: 3
+    wave_completion: 5
+    boss_wave_completion: 20
+    villager_saved: 3
   # UNUSED: Trading settings
   trading:
-    enhanced-trades-unlock-wave: 5
-    boss-wave-special-trades: true
+    enhanced_trades_unlock_wave: 5
+    boss_wave_special_trades: true
 
 # Visual and sound effects
 effects:
   barrier:
     # UNUSED: Barrier particle effects
     visible: true
-    particle-density: 1.0  # Increased for better dome visibility
-    particle-spacing: 1  # Reduced spacing for denser barrier (was 2)
-    update-interval: 10  # Faster updates for smoother animation (was 20)
+    particle_density: 1.0  # Increased for better dome visibility
+    particle_spacing: 1  # Reduced spacing for denser barrier (was 2)
+    update_interval: 10  # Faster updates for smoother animation (was 20)
 
     # Enhanced particle visibility settings
-    particle-size: 4.0  # Larger particles (default was 2.0)
-    particle-intensity: 3  # Number of particle effects per location
-    multiple-particle-types: true  # Use DUST + FLAME + ENCHANT + FIREWORK
-    particle-animation: true  # Enable pulsing/color animation effects
+    particle_size: 4.0  # Larger particles (default was 2.0)
+    particle_intensity: 3  # Number of particle effects per location
+    multiple_particle_types: true  # Use DUST + FLAME + ENCHANT + FIREWORK
+    particle_animation: true  # Enable pulsing/color animation effects
 
     # Underground cave detection settings
-    max-underground-depth: 20  # How deep to check for air spaces
-    debug-mode: false  # Enable debug particles and logging
+    max_underground_depth: 20  # How deep to check for air spaces
+    debug_mode: false  # Enable debug particles and logging
 
     # Color settings (R,G,B format)
-    primary-color: "0,255,255"    # Bright cyan
-    secondary-color: "255,255,0"  # Bright yellow for animation
+    primary_color: "0,255,255"    # Bright cyan
+    secondary_color: "255,255,0"  # Bright yellow for animation
   # UNUSED: Wave start effects
   spawn:
-    warning-sound: true
-    warning-particles: true
+    warning_sound: true
+    warning_particles: true
 
 # Creeper explosion behavior settings
-creeper-explosion:
+creeper_explosion:
   enabled: true
-  countdown-seconds: 5  # How long creeper waits before exploding if no progress
-  progress-check-interval: 20  # How often to check for progress (in ticks, 20 = 1 second)
-  position-history-size: 3  # Number of recent block positions to track for progress detection
+  countdown_seconds: 5  # How long creeper waits before exploding if no progress
+  progress_check_interval: 20  # How often to check for progress (in ticks, 20 = 1 second)
+  position_history_size: 3  # Number of recent block positions to track for progress detection
 
-mob-ai:
-  creeper-vision-radius: 10  # Creepers can detect players/villagers within 10 blocks, even through walls
-  player-target-weight: 0.7  # Weight for targeting players
-  villager-target-weight: 0.3  # Weight for targeting villagers
-  target-switch-chance: 0.1  # Chance to switch targets
-  max-target-distance: 50.0  # Maximum distance for targeting
-  scan-interval-ticks: 100  # Interval for scanning targets (in ticks)
+mob_ai:
+  creeper_vision_radius: 10  # Creepers can detect players/villagers within 10 blocks, even through walls
+  player_target_weight: 0.7  # Weight for targeting players
+  villager_target_weight: 0.3  # Weight for targeting villagers
+  target_switch_chance: 0.1  # Chance to switch targets
+  max_target_distance: 50.0  # Maximum distance for targeting
+  scan_interval_ticks: 100  # Interval for scanning targets (in ticks)
 
 # UNUSED: Debug settings
 debug:
   enabled: false
-  log-wave-stats: false
+  log_wave_stats: false
+
+loot_table_settings:
+  common_loot_probability: 0.05  # Probability of common loot dropping
+  common_loot_max_items: 5  # Maximum number of common loot items
+  bonus_loot_probability: 0.01  # Probability of bonus loot dropping
+  bonus_loot_max_items: 2  # Maximum number of bonus loot items
+
+common_loot:
+  zombie: "leather,iron_nugget,gold_nugget"
+  skeleton: "oak_log,coal"
+  spider: "sugar_cane,cobblestone"
+  creeper: "diamond,redstone"
+  enderman: "obsidian,nether_wart"
+  witch: "lapis_lazuli,blaze_rod"
+
+bonus_loot:
+  zombie: "golden_apple"
+  skeleton: "experience_bottle"
+  spider: "villager_spawn_egg"
+  creeper: "tnt"
+  enderman: "totem_of_undying"
+  witch: "ghast_tear"

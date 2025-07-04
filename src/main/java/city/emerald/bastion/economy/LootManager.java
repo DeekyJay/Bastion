@@ -1,7 +1,6 @@
 package city.emerald.bastion.economy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,66 +37,24 @@ public class LootManager {
   // New loot tables using LootTableEntry helper class
   // The items in these tables are in-addition to the default drops
   // Common drops are always available, bonus drops are rarer
-  private static final Map<EntityType, List<LootTableEntry>> COMMON_LOOT_TABLE = new HashMap<>();
-  private static final Map<EntityType, List<LootTableEntry>> BONUS_LOOT_TABLE = new HashMap<>();
+  private final Map<EntityType, List<LootTableEntry>> commonLootTable;
+  private final Map<EntityType, List<LootTableEntry>> bonusLootTable;
 
-  static {
-    // Tier 1: Foundational Crafting (Probability: 0.05)
-    COMMON_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
-      new LootTableEntry(Material.LEATHER, 0.05, 2),
-      new LootTableEntry(Material.IRON_NUGGET, 0.05, 4),
-      new LootTableEntry(Material.GOLD_NUGGET, 0.05, 3)
-    ));
-    COMMON_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
-      new LootTableEntry(Material.OAK_LOG, 0.05, 2),
-      new LootTableEntry(Material.COAL, 0.05, 3)
-    ));
-    COMMON_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
-      new LootTableEntry(Material.SUGAR_CANE, 0.05, 3),
-      new LootTableEntry(Material.COBBLESTONE, 0.05, 4)
-    ));
-
-    // Tier 2: Advanced Crafting & Enchanting (Probability: 0.02)
-    COMMON_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
-      new LootTableEntry(Material.DIAMOND, 0.02, 1),
-      new LootTableEntry(Material.REDSTONE, 0.02, 5)
-    ));
-    COMMON_LOOT_TABLE.put(EntityType.ENDERMAN, Arrays.asList(
-      new LootTableEntry(Material.OBSIDIAN, 0.02, 2),
-      new LootTableEntry(Material.NETHER_WART, 0.02, 2)
-    ));
-    COMMON_LOOT_TABLE.put(EntityType.WITCH, Arrays.asList(
-      new LootTableEntry(Material.LAPIS_LAZULI, 0.02, 6),
-      new LootTableEntry(Material.BLAZE_ROD, 0.02, 1)
-    ));
-
-    // Tier 3: Bonus Drops (Probability: 0.03)
-    // Note: This tier currently uses simple materials. A future enhancement
-    // could allow for enchanted items or specific potions.
-    BONUS_LOOT_TABLE.put(EntityType.ZOMBIE, Arrays.asList(
-      new LootTableEntry(Material.GOLDEN_APPLE, 0.03, 1)
-    ));
-    BONUS_LOOT_TABLE.put(EntityType.SKELETON, Arrays.asList(
-      new LootTableEntry(Material.EXPERIENCE_BOTTLE, 0.03, 3)
-    ));
-    BONUS_LOOT_TABLE.put(EntityType.SPIDER, Arrays.asList(
-      new LootTableEntry(Material.VILLAGER_SPAWN_EGG, 0.03, 1)
-    ));
-    BONUS_LOOT_TABLE.put(EntityType.CREEPER, Arrays.asList(
-      new LootTableEntry(Material.TNT, 0.03, 2)
-    ));
-    BONUS_LOOT_TABLE.put(EntityType.ENDERMAN, Arrays.asList(
-      new LootTableEntry(Material.TOTEM_OF_UNDYING, 0.03, 1)
-    ));
-    BONUS_LOOT_TABLE.put(EntityType.WITCH, Arrays.asList(
-      new LootTableEntry(Material.GHAST_TEAR, 0.03, 1)
-    ));
-  }
 
   public LootManager(Bastion plugin, GameStateManager gameStateManager) {
     this.plugin = plugin;
     this.gameStateManager = gameStateManager;
     this.random = new Random();
+
+    // Retrieve configuration values
+    double commonLootProbability = plugin.getConfig().getDouble("loot_table_settings.common_loot_probability", 0.05);
+    int commonLootMaxItems = plugin.getConfig().getInt("loot_table_settings.common_loot_max_items", 5);
+    double bonusLootProbability = plugin.getConfig().getDouble("loot_table_settings.bonus_loot_probability", 0.01);
+    int bonusLootMaxItems = plugin.getConfig().getInt("loot_table_settings.bonus_loot_max_items", 2);
+
+    // Load loot tables from config
+    commonLootTable = buildLootTable("common_loot", commonLootProbability, commonLootMaxItems);
+    bonusLootTable = buildLootTable("bonus_loot", bonusLootProbability, bonusLootMaxItems);
   }
 
   public void handleMobDeath(EntityDeathEvent event) {
@@ -133,13 +90,48 @@ public class LootManager {
     List<ItemStack> loot = new ArrayList<>();
 
     // Process a given loot table
-    processLootTable(loot, COMMON_LOOT_TABLE.get(entityType), multiplier);
+    processLootTable(loot, commonLootTable.get(entityType), multiplier);
     
     if (includeBonusItems) {
-      processLootTable(loot, BONUS_LOOT_TABLE.get(entityType), multiplier);
+      processLootTable(loot, bonusLootTable.get(entityType), multiplier);
     }
 
     return loot;
+  }
+
+  private Map<EntityType, List<LootTableEntry>> buildLootTable(String configSectionName, double probability, int maxItemCount) {
+    Map<EntityType, List<LootTableEntry>> lootTable = new HashMap<>();
+
+    // Get the specified section from the config
+    if (plugin.getConfig().getConfigurationSection(configSectionName) == null) {
+        plugin.getLogger().warning("Configuration section not found: " + configSectionName);
+        return lootTable; // Return empty table if section is missing
+    }
+
+    Map<String, Object> configLoot = plugin.getConfig().getConfigurationSection(configSectionName).getValues(false);
+    for (Map.Entry<String, Object> entry : configLoot.entrySet()) {
+        try {
+            // Convert the key to EntityType
+            EntityType entityType = EntityType.valueOf(entry.getKey().toUpperCase());
+
+            // Parse the loot items
+            List<LootTableEntry> entries = new ArrayList<>();
+            for (String item : ((String) entry.getValue()).split(",")) {
+                try {
+                    Material material = Material.valueOf(item.toUpperCase());
+                    entries.add(new LootTableEntry(material, probability, maxItemCount));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid material name in config: " + item);
+                }
+            }
+
+            lootTable.put(entityType, entries);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid entity type name in config: " + entry.getKey());
+        }
+    }
+
+    return lootTable;
   }
 
   private void processLootTable(List<ItemStack> loot, List<LootTableEntry> table, double multiplier) {
