@@ -45,8 +45,16 @@ public class LootManager {
     this.plugin = plugin;
     this.gameStateManager = gameStateManager;
     this.random = new Random();
-    commonLootTable = buildLootTable("common-loot", 0.05, 5);
-    bonusLootTable = buildLootTable("bonus-loot", 0.03, 3);
+
+    // Retrieve configuration values
+    double commonLootProbability = plugin.getConfig().getDouble("common-loot-probability", 0.05);
+    int commonLootMaxItems = plugin.getConfig().getInt("common-loot-max-items", 5);
+    double bonusLootProbability = plugin.getConfig().getDouble("bonus-loot-probability", 0.01);
+    int bonusLootMaxItems = plugin.getConfig().getInt("bonus-loot-max-items", 2);
+
+    // Load loot tables from config
+    commonLootTable = buildLootTable("common-loot", commonLootProbability, commonLootMaxItems);
+    bonusLootTable = buildLootTable("bonus-loot", bonusLootProbability, bonusLootMaxItems);
   }
 
   public void handleMobDeath(EntityDeathEvent event) {

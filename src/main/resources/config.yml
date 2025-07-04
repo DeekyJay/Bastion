@@ -96,6 +96,11 @@ debug:
   enabled: false
   log-wave-stats: false
 
+common-loot-probability: 0.05  # Probability of common loot dropping
+common-loot-max-items: 5  # Maximum number of common loot items
+bonus-loot-probability: 0.01  # Probability of bonus loot dropping
+bonus-loot-max-items: 2  # Maximum number of bonus loot items
+
 common-loot:
   zombie: "leather,iron_nugget,gold_nugget"
   skeleton: "oak_log,coal"
