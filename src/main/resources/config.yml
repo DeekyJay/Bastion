@@ -95,3 +95,19 @@ mob-ai:
 debug:
   enabled: false
   log-wave-stats: false
+
+common-loot:
+  zombie: "leather,iron_nugget,gold_nugget"
+  skeleton: "oak_log,coal"
+  spider: "sugar_cane,cobblestone"
+  creeper: "diamond,redstone"
+  enderman: "obsidian,nether_wart"
+  witch: "lapis_lazuli,blaze_rod"
+
+bonus-loot:
+  zombie: "golden_apple"
+  skeleton: "experience_bottle"
+  spider: "villager_spawn_egg"
+  creeper: "tnt"
+  enderman: "totem_of_undying"
+  witch: "ghast_tear"
