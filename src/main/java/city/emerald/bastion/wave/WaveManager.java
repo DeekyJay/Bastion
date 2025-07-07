@@ -75,12 +75,16 @@ public class WaveManager {
           this.waveState = WaveState.ACTIVE;
           this.currentWave = waveNumber;
           this.gameStateManager.setCurrentWaveNumber(waveNumber);
-          // Remove duplicate assignment - remainingMobs already set above
           this.difficultyMultiplier = 1.0 + (waveNumber * 0.1);
 
           // Start lightning strikes on boss waves
           if (waveNumber > 0 && waveNumber % 10 == 0) {
             lightningManager.start();
+          }
+
+          // Spawn the wave using the new system
+          if (mobSpawnManager != null) {
+            mobSpawnManager.spawnWave(waveNumber, remainingMobs);
           }
 
           // Announce the wave start
