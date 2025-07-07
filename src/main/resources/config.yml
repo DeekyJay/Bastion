@@ -10,6 +10,16 @@ wave:
   completion_delay_seconds: 10
   # Time in seconds for the countdown before a new wave becomes active.
   preparation_delay_seconds: 10
+
+  # Parameters for the wave difficulty generation heuristic.
+  difficulty_scaling:
+    # The target average difficulty for the first wave.
+    starting_average_difficulty: 1.0
+    # The percentage increase in target difficulty for each subsequent wave.
+    average_difficulty_increase_percent: 5.0
+    # The number of consecutive failed attempts to improve the mob set before halting.
+    max_failed_swaps: 50
+
   # UNUSED: Base number of mobs per wave (before player scaling)
   base_mob_count: 10
   # UNUSED: Additional mobs per player
