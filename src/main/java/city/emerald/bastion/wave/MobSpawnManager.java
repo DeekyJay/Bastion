@@ -1,6 +1,8 @@
 package city.emerald.bastion.wave;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -335,6 +338,114 @@ public class MobSpawnManager implements Listener {
 
   private String formatMobName(String name) {
     return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+  }
+
+  /**
+   * Generates and spawns all mobs for a given wave at once.
+   * @param waveNumber The current wave number.
+   * @param mobCount The total number of mobs to spawn for the wave.
+   */
+  public void spawnWave(int waveNumber, int mobCount) {
+    List<EntityType> mobList = generateMobListForWave(waveNumber, mobCount);
+
+    for (EntityType mobType : mobList) {
+      Location spawnLoc = findSafeSpawnLocation();
+      if (spawnLoc == null) {
+        plugin.getLogger().warning("Could not find a safe spawn location for wave " + waveNumber);
+        continue;
+      }
+
+      LivingEntity mob = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, mobType);
+
+      // Equip mobs to prevent them from burning in daylight
+      if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
+          if (mob.getEquipment() != null) {
+              mob.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
+              mob.getEquipment().setHelmetDropChance(0.0f); // Prevent helmet drop
+          }
+      }
+
+      // Apply wave-based attributes
+      applyMobAttributes(mob);
+
+      // Determine if mob is elite or boss
+      boolean isElite = waveNumber >= 5 && random.nextDouble() < 0.2;
+      boolean isBoss = waveNumber % 10 == 0;
+
+      // Set custom name to indicate wave number and type
+      String prefix = isBoss
+        ? "§4[BOSS]"
+        : (isElite ? "§5[ELITE]" : "§c[Wave " + waveNumber + "]");
+      mob.setCustomName(prefix + " " + formatMobName(mob.getType().name()));
+      mob.setCustomNameVisible(true);
+
+      // Track spawn time
+      spawnTimes.put(mob, System.currentTimeMillis());
+      currentMobCount++;
+    }
+    plugin.getLogger().info("Spawned " + mobList.size() + " mobs for wave " + waveNumber);
+  }
+
+  /**
+   * Generates a list of mobs for a wave based on a target difficulty score.
+   * @param waveNumber The current wave number.
+   * @param mobCount The total number of mobs in the wave.
+   * @return A list of EntityTypes to be spawned.
+   */
+  private List<EntityType> generateMobListForWave(int waveNumber, int mobCount) {
+    ConfigurationSection difficultyConfig = plugin.getConfig().getConfigurationSection("mob_difficulty");
+    if (difficultyConfig == null) {
+        plugin.getLogger().severe("mob_difficulty section is missing from config.yml!");
+        return Collections.nCopies(mobCount, EntityType.ZOMBIE);
+    }
+
+    Map<EntityType, Double> mobDifficultyMap = new HashMap<>();
+    List<EntityType> availableMobTypes = new ArrayList<>();
+    for (String key : difficultyConfig.getKeys(false)) {
+        try {
+            EntityType type = EntityType.valueOf(key.toUpperCase());
+            mobDifficultyMap.put(type, difficultyConfig.getDouble(key));
+            availableMobTypes.add(type);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid mob type in config.yml: " + key);
+        }
+    }
+
+    double startingDifficulty = plugin.getConfig().getDouble("wave.difficulty_scaling.starting_average_difficulty", 1.0);
+    double difficultyIncrease = plugin.getConfig().getDouble("wave.difficulty_scaling.average_difficulty_increase_percent", 5.0) / 100.0;
+    int maxFailedSwaps = plugin.getConfig().getInt("wave.difficulty_scaling.max_failed_swaps", 50);
+
+    double targetAverageDifficulty = startingDifficulty * Math.pow(1 + difficultyIncrease, waveNumber - 1);
+
+    List<EntityType> mobSet = new ArrayList<>(Collections.nCopies(mobCount, EntityType.ZOMBIE));
+    double currentAverageDifficulty = 1.0;
+
+    int failedSwaps = 0;
+    while (failedSwaps < maxFailedSwaps) {
+        if (availableMobTypes.isEmpty()) break;
+
+        int indexToSwap = random.nextInt(mobSet.size());
+        EntityType candidateType = availableMobTypes.get(random.nextInt(availableMobTypes.size()));
+
+        double difficultyRemoved = mobDifficultyMap.getOrDefault(mobSet.get(indexToSwap), 1.0);
+        double difficultyAdded = mobDifficultyMap.getOrDefault(candidateType, 1.0);
+
+        double newTotalDifficulty = (currentAverageDifficulty * mobCount) - difficultyRemoved + difficultyAdded;
+        double newAverageDifficulty = newTotalDifficulty / mobCount;
+
+        double currentDiff = Math.abs(targetAverageDifficulty - currentAverageDifficulty);
+        double newDiff = Math.abs(targetAverageDifficulty - newAverageDifficulty);
+
+        if (newDiff < currentDiff && newAverageDifficulty <= targetAverageDifficulty) {
+            mobSet.set(indexToSwap, candidateType);
+            currentAverageDifficulty = newAverageDifficulty;
+            failedSwaps = 0; // Reset on successful swap
+        } else {
+            failedSwaps++;
+        }
+    }
+    plugin.getLogger().info("Generated mob set for wave " + waveNumber + " with average difficulty: " + currentAverageDifficulty);
+    return mobSet;
   }
 
   @EventHandler
