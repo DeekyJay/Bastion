@@ -11,6 +11,7 @@ import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -162,9 +164,12 @@ public class MobSpawnManager implements Listener {
       .getWorld()
       .spawnEntity(spawnLoc, mobType);
 
-    // Make zombies immune to sunlight
-    if (mob instanceof org.bukkit.entity.Zombie) {
-      ((org.bukkit.entity.Zombie) mob).setShouldBurnInDay(false);
+    // Equip mobs to prevent them from burning in daylight
+    if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
+        if (mob.getEquipment() != null) {
+            mob.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
+            mob.getEquipment().setHelmetDropChance(0.0f); // Prevent helmet drop
+        }
     }
 
     // Apply wave-based attributes

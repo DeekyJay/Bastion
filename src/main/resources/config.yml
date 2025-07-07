@@ -6,6 +6,10 @@ admins:
   - "spraguerilla"
 
 wave:
+  # Time in seconds to wait after a wave is completed before starting the next one.
+  completion_delay_seconds: 10
+  # Time in seconds for the countdown before a new wave becomes active.
+  preparation_delay_seconds: 10
   # UNUSED: Base number of mobs per wave (before player scaling)
   base_mob_count: 10
   # UNUSED: Additional mobs per player
@@ -117,3 +121,22 @@ bonus_loot:
   creeper: "tnt"
   enderman: "totem_of_undying"
   witch: "ghast_tear"
+
+# Defines the difficulty score for each mob type, used for calculating wave difficulty.
+# The score is a scalar based on health, damage, speed, and special abilities.
+# Zombie is the baseline at 1.0.
+mob_difficulty:
+  zombie: 1.0
+  skeleton: 1.2
+  stray: 1.4
+  spider: 1.3
+  cave_spider: 1.5
+  creeper: 1.8
+  phantom: 1.6
+  witch: 2.5
+  enderman: 2.2
+  vindicator: 2.0
+  pillager: 1.3
+  evoker: 3.5
+  vex: 1.7
+  ravager: 4.0

@@ -59,9 +59,11 @@ public class WaveManager {
     // Calculate mob count based on wave number (more appropriate than player count for initial calculation)
     this.remainingMobs = calculateMobCount(waveNumber);
 
+    long preparationDelaySeconds = plugin.getConfig().getLong("wave.preparation_delay_seconds", 10L);
+
     // Announce wave start
     Bukkit.broadcastMessage(
-      "§6Wave " + waveNumber + " starting in 10 seconds!"
+      "§6Wave " + waveNumber + " starting in " + preparationDelaySeconds + " seconds!"
     );
 
     // Start wave after delay
@@ -84,7 +86,7 @@ public class WaveManager {
           // Announce the wave start
           Bukkit.broadcastMessage("§cWave " + waveNumber + " has begun!");
         },
-        200L
+        preparationDelaySeconds * 20L
       ); // 10 seconds * 20 ticks
   }
 
@@ -103,6 +105,8 @@ public class WaveManager {
       });
     }
 
+    long completionDelaySeconds = plugin.getConfig().getLong("wave.completion_delay_seconds", 10L);
+
     // Start next wave after delay
     Bukkit
       .getScheduler()
@@ -111,7 +115,7 @@ public class WaveManager {
         () -> {
           startWave(currentWave + 1);
         },
-        200L
+        completionDelaySeconds * 20L
       ); // 10 seconds * 20 ticks
   }
 
