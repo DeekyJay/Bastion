@@ -1,6 +1,7 @@
 package city.emerald.bastion;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,42 +60,17 @@ public class VillageManager {
         .getLogger()
         .info("Found a village structure at: " + nearestVillage.toVector());
 
-      // We found a village structure, now validate it has enough villagers
-      if (isValidVillageLocation(nearestVillage) &&
-        hasEnoughVillagers(nearestVillage, world)) {
-        Location spawnLoc = findSafeLocation(nearestVillage);
-        this.villageCenter = spawnLoc;
-        world.setSpawnLocation(spawnLoc);
+      // We found a village structure, set spawn location
+      Location spawnLoc = findSafeLocation(nearestVillage);
+      this.villageCenter = spawnLoc;
+      world.setSpawnLocation(spawnLoc);      // We need to load the chunk to register villagers
+      spawnLoc.getChunk().load();
+      
+      plugin
+        .getLogger()
+        .info("Village selected and spawn set.");
 
-        // We need to load the chunk to register villagers
-        spawnLoc.getChunk().load();
-        plugin
-          .getServer()
-          .getScheduler()
-          .runTaskLater(
-            plugin,
-            () -> {
-              registerVillagersInRange(world);
-              plugin
-                .getLogger()
-                .info(
-                  "Village selected and spawn set. " +
-                  registeredVillagers.size() +
-                  " villagers registered."
-                );
-            },
-            20L
-          ); // Delay to allow chunk to fully load
-
-        return true;
-      } else {
-        plugin
-          .getLogger()
-          .warning(
-            "Found a village structure, but it's not suitable (insufficient solid ground or fewer than 4 villagers)."
-          );
-        return false;
-      }
+      return true;
     } else {
       plugin
         .getLogger()
@@ -140,16 +116,35 @@ public class VillageManager {
   private boolean hasEnoughVillagers(Location villageLocation, World world) {
     int radius = getBarrierRadius();
     int villagerCount = 0;
+    int requiredVillagers = 4;
 
-    // Load the chunk to ensure villagers are loaded
-    villageLocation.getChunk().load();
-
-    // Count villagers within the barrier radius
-    for (Entity entity : world.getEntities()) {
-      if (entity.getType() == EntityType.VILLAGER) {
-        if (isInRange(entity.getLocation(), villageLocation, radius)) {
-          villagerCount++;
-        }
+    plugin.getLogger().info("DEBUG: Searching for villagers in radius: " + radius);
+    plugin.getLogger().info("DEBUG: Village location: " + villageLocation);
+    
+    // Load just the center chunk and a few nearby chunks
+    int centerChunkX = villageLocation.getBlockX() >> 4;
+    int centerChunkZ = villageLocation.getBlockZ() >> 4;
+    
+    // Load a 3x3 area of chunks around the village
+    for (int x = -1; x <= 1; x++) {
+      for (int z = -1; z <= 1; z++) {
+        world.getChunkAt(centerChunkX + x, centerChunkZ + z).load();
+      }
+    }
+    
+    plugin.getLogger().info("DEBUG: Loaded 3x3 chunk area");
+    
+    // Use getEntitiesByClass to find villagers more reliably
+    Collection<Villager> villagers = world.getEntitiesByClass(Villager.class);
+    
+    plugin.getLogger().info("DEBUG: Found " + villagers.size() + " total villagers in world");
+    
+    // Count villagers within radius
+    for (Villager villager : villagers) {
+      double distance = villager.getLocation().distance(villageLocation);
+      if (distance <= radius) {
+        villagerCount++;
+        plugin.getLogger().info("DEBUG: Villager at " + villager.getLocation() + " is " + distance + " blocks away");
       }
     }
 
@@ -167,7 +162,7 @@ public class VillageManager {
    * Registers all villagers within the barrier range.
    * @param world The world to search in
    */
-  private void registerVillagersInRange(World world) {
+  public void registerVillagersInRange(World world) {
     registeredVillagers.clear();
     // Get barrier radius from config, fallback to 80 if barrier manager not set
     int radius = barrierManager != null

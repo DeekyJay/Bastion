@@ -175,7 +175,14 @@ public final class Bastion extends JavaPlugin implements Listener {
           Player player = (Player) sender;
           if (villageManager.findAndSelectVillage(player.getWorld())) {
             sender.sendMessage("§aVillage found and selected!");
-            barrierManager.teleportToVillageCenter(player);
+            
+            // Teleport all online players to the village
+            for (Player onlinePlayer : getServer().getOnlinePlayers()) {
+              barrierManager.teleportToVillageCenter(onlinePlayer);
+            }
+            
+            // Announce to all players
+            getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
           } else {
             sender.sendMessage("§cNo valid village found nearby!");
           }
@@ -198,6 +205,8 @@ public final class Bastion extends JavaPlugin implements Listener {
             sender.sendMessage("§cBarrier deactivated.");
           } else {
             barrierManager.activate();
+            // Register villagers now that players are in the village and chunks are loaded
+            //villageManager.registerVillagersInRange(((Player) sender).getWorld());
             sender.sendMessage("§aBarrier activated!");
           }
           break;
@@ -218,6 +227,8 @@ public final class Bastion extends JavaPlugin implements Listener {
             );
             return true;
           }
+          // Ensure villagers are registered before starting the game
+          villageManager.registerVillagersInRange(((Player) sender).getWorld());
           gameStateManager.startGame();
           statsManager.onGameStart();
           sender.sendMessage("§aStarting new game...");
