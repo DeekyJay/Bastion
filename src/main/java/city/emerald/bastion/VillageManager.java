@@ -63,29 +63,14 @@ public class VillageManager {
       // We found a village structure, set spawn location
       Location spawnLoc = findSafeLocation(nearestVillage);
       this.villageCenter = spawnLoc;
-      world.setSpawnLocation(spawnLoc);
-
-      // We need to load the chunk to register villagers
+      world.setSpawnLocation(spawnLoc);      // We need to load the chunk to register villagers
       spawnLoc.getChunk().load();
-        plugin
-          .getServer()
-          .getScheduler()
-          .runTaskLater(
-            plugin,
-            () -> {
-              registerVillagersInRange(world);
-              plugin
-                .getLogger()
-                .info(
-                  "Village selected and spawn set. " +
-                  registeredVillagers.size() +
-                  " villagers registered."
-                );
-            },
-            20L
-          ); // Delay to allow chunk to fully load
+      
+      plugin
+        .getLogger()
+        .info("Village selected and spawn set.");
 
-        return true;
+      return true;
     } else {
       plugin
         .getLogger()
@@ -177,7 +162,7 @@ public class VillageManager {
    * Registers all villagers within the barrier range.
    * @param world The world to search in
    */
-  private void registerVillagersInRange(World world) {
+  public void registerVillagersInRange(World world) {
     registeredVillagers.clear();
     // Get barrier radius from config, fallback to 80 if barrier manager not set
     int radius = barrierManager != null
