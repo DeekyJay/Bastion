@@ -32,6 +32,7 @@ public class GameStateManager implements Listener {
     LOBBY("Waiting for players..."),
     PREPARING("Preparing game..."),
     ACTIVE("Game in progress"),
+    FAILED("Wave failed - restarting..."),
     COMPLETED("Game completed!");
 
     private final String message;
