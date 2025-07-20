@@ -13,32 +13,6 @@ wave:
   # Maximum duration in seconds for a wave before it times out and fails.
   wave_duration_seconds: 300
 
-  # Parameters for the wave difficulty generation heuristic.
-  difficulty_scaling:
-    # The target average difficulty for the first wave.
-    starting_average_difficulty: 1.0
-    # The percentage increase in target difficulty for each subsequent wave.
-    average_difficulty_increase_percent: 5.0
-    # The number of consecutive failed attempts to improve the mob set before halting.
-    max_failed_swaps: 50
-
-  # UNUSED: Base number of mobs per wave (before player scaling)
-  base_mob_count: 10
-  # UNUSED: Additional mobs per player
-  mobs_per_player: 2
-  # UNUSED: Base difficulty multiplier per wave
-  difficulty_multiplier: 1.5
-  # UNUSED: Mob stat scaling
-  scaling:
-    health: 1.5
-    damage: 1.5
-  # UNUSED: Player count scaling
-  player_scaling:
-    mob_health: 0.3  # Additional 30% health per player
-  # UNUSED: Wave completion requirements
-  completion:
-    require_all_mobs_defeated: true
-
 village:
   # Barrier dimensions (in blocks)
   barrier:

@@ -20,7 +20,6 @@ public class WaveManager {
   private int currentWave;
   private int remainingMobs;
   private int killCount;
-  private double difficultyMultiplier;
   
   // Wave timer fields
   private BukkitTask waveTimerTask;
@@ -47,7 +46,6 @@ public class WaveManager {
     this.currentWave = 0;
     this.remainingMobs = 0;
     this.killCount = 0;
-    this.difficultyMultiplier = 1.0;
   }
 
   /**
@@ -86,7 +84,6 @@ public class WaveManager {
           this.waveState = WaveState.ACTIVE;
           this.currentWave = waveNumber;
           this.gameStateManager.setCurrentWaveNumber(waveNumber);
-          this.difficultyMultiplier = 1.0 + (waveNumber * 0.1);
           
           // Record wave start time and start timer
           this.waveStartTime = System.currentTimeMillis();
@@ -179,14 +176,6 @@ public class WaveManager {
       cleanupRemainingMobs();
       completeWave();
     }
-  }
-
-  public double getDifficultyMultiplier() {
-    return difficultyMultiplier;
-  }
-
-  public double getHealthMultiplier(int playerCount) {
-    return getDifficultyMultiplier() * (1 + 0.3 * playerCount);
   }
 
   private int calculateMobCount(int waveNumber) {

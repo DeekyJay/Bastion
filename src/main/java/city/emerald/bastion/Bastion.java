@@ -371,13 +371,6 @@ public final class Bastion extends JavaPlugin implements Listener {
         event.setDamage(event.getDamage() * (1 - reduction));
       }
     }
-
-    // Apply wave difficulty scaling to mob damage
-    if (event.getDamager() instanceof Monster) {
-      double baseDamage = event.getDamage();
-      double multiplier = waveManager.getDifficultyMultiplier();
-      event.setDamage(baseDamage * multiplier);
-    }
   }
 
   // Utility methods for wave management (to be implemented)
@@ -397,13 +390,6 @@ public final class Bastion extends JavaPlugin implements Listener {
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
     if (!gameStateManager.isGameActive() || !waveManager.isWaveActive()) {
       return;
-    }
-
-    // Apply wave-based damage scaling
-    if (event.getDamager() instanceof Monster) {
-      double damage = event.getDamage();
-      double multiplier = waveManager.getDifficultyMultiplier();
-      event.setDamage(damage * multiplier);
     }
 
     // Note: Mob kill tracking is handled in onMobDeath() method to prevent double counting

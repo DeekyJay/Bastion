@@ -236,7 +236,7 @@ public class MobSpawnManager implements Listener {
       double z = center.getZ() + (distance * Math.sin(angle));
 
       Location spawnLoc = new Location(world, x, 0, z);
-      int y = world.getHighestBlockYAt(spawnLoc);
+      int y = 1 + world.getHighestBlockYAt(spawnLoc);
       spawnLoc.setY(y);
 
       // Validate location
@@ -276,59 +276,8 @@ public class MobSpawnManager implements Listener {
   }
 
   private void applyMobAttributes(LivingEntity mob) {
-    int playerCount = Bukkit.getOnlinePlayers().size();
-    double healthMultiplier = waveManager.getHealthMultiplier(playerCount);
-
-    // Set health
-    double baseHealth = mob
-      .getAttribute(
-        org.bukkit.attribute.Attribute.valueOf("GENERIC_MAX_HEALTH")
-      )
-      .getBaseValue();
-    mob
-      .getAttribute(
-        org.bukkit.attribute.Attribute.valueOf("GENERIC_MAX_HEALTH")
-      )
-      .setBaseValue(baseHealth * healthMultiplier);
-    mob.setHealth(baseHealth * healthMultiplier);
-
-    // Set damage
-    if (
-      mob.getAttribute(
-        org.bukkit.attribute.Attribute.valueOf("GENERIC_ATTACK_DAMAGE")
-      ) !=
-      null
-    ) {
-      double baseDamage = mob
-        .getAttribute(
-          org.bukkit.attribute.Attribute.valueOf("GENERIC_ATTACK_DAMAGE")
-        )
-        .getBaseValue();
-      mob
-        .getAttribute(
-          org.bukkit.attribute.Attribute.valueOf("GENERIC_ATTACK_DAMAGE")
-        )
-        .setBaseValue(baseDamage * waveManager.getDifficultyMultiplier());
-    }
-
-    // Increase speed slightly each wave
-    if (
-      mob.getAttribute(
-        org.bukkit.attribute.Attribute.valueOf("GENERIC_MOVEMENT_SPEED")
-      ) !=
-      null
-    ) {
-      double baseSpeed = mob
-        .getAttribute(
-          org.bukkit.attribute.Attribute.valueOf("GENERIC_MOVEMENT_SPEED")
-        )
-        .getBaseValue();
-      mob
-        .getAttribute(
-          org.bukkit.attribute.Attribute.valueOf("GENERIC_MOVEMENT_SPEED")
-        )
-        .setBaseValue(baseSpeed * (1 + 0.05 * waveManager.getCurrentWave()));
-    }
+    // All stat scaling removed - mobs keep their base attributes
+    // This method kept as stub for future use (equipment, effects, etc.)
   }
 
   private long calculateSpawnDelay() {
