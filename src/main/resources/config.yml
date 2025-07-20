@@ -7,7 +7,7 @@ admins:
 
 wave:
   # Time in seconds to wait after a wave is completed before starting the next one.
-  completion_delay_seconds: 10
+  completion_delay_seconds: 120
   # Time in seconds for the countdown before a new wave becomes active.
   preparation_delay_seconds: 10
   # Maximum duration in seconds for a wave before it times out and fails.
