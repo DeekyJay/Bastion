@@ -242,6 +242,34 @@ public final class Bastion extends JavaPlugin implements Listener {
           statsManager.onGameEnd();
           sender.sendMessage("§cGame stopped.");
           break;
+        case "pause":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to pause the game!");
+            return true;
+          }
+          if (!gameStateManager.isPaused() && (gameStateManager.isGameActive() || gameStateManager.getCurrentState() == GameStateManager.GameState.PREPARING)) {
+            gameStateManager.pauseGame();
+            sender.sendMessage("§6Game paused.");
+            getServer().broadcastMessage("§6Game has been paused by an admin.");
+          } else if (gameStateManager.isPaused()) {
+            sender.sendMessage("§eGame is already paused.");
+          } else {
+            sender.sendMessage("§cNo game is running to pause.");
+          }
+          break;
+        case "resume":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to resume the game!");
+            return true;
+          }
+          if (gameStateManager.isPaused()) {
+            gameStateManager.resumeGame();
+            sender.sendMessage("§aGame resumed.");
+            getServer().broadcastMessage("§aGame has been resumed by an admin.");
+          } else {
+            sender.sendMessage("§cGame is not paused.");
+          }
+          break;
         case "upgrade":
           if (args.length < 3) {
             sender.sendMessage(
@@ -264,6 +292,26 @@ public final class Bastion extends JavaPlugin implements Listener {
           break;
         case "info":
           showGameStatus(sender);
+          break;
+        case "debug":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to use debug commands!");
+            return true;
+          }
+          // Toggle debug mode implementation would go here
+          sender.sendMessage("§eDebug command not yet implemented.");
+          break;
+        case "stats":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to view player stats!");
+            return true;
+          }
+          if (args.length < 2) {
+            sender.sendMessage("§cUsage: /bastion stats <player>");
+            return true;
+          }
+          // Player stats viewing implementation would go here
+          sender.sendMessage("§eStats command not yet implemented.");
           break;
         default:
           sender.sendMessage("§cUnknown command. Use /bastion for help.");
@@ -411,6 +459,10 @@ public final class Bastion extends JavaPlugin implements Listener {
     sender.sendMessage(
       "§7Game State: §f" + gameStateManager.getCurrentState().getMessage()
     );
+    
+    if (gameStateManager.isPaused()) {
+      sender.sendMessage("§7Status: §6PAUSED");
+    }
 
     if (villageManager.getVillageCenter().isPresent()) {
       sender.sendMessage(
@@ -428,6 +480,15 @@ public final class Bastion extends JavaPlugin implements Listener {
         "§7Total Kills: §f" +
         statsManager.getCurrentGameStats().getTotalMobsKilled()
       );
+      
+      if (waveManager.isWaveActive() && !gameStateManager.isPaused()) {
+        long remainingTime = waveManager.getRemainingTime();
+        if (remainingTime > 0) {
+          long minutes = remainingTime / 60;
+          long seconds = remainingTime % 60;
+          sender.sendMessage(String.format("§7Time Remaining: §f%d:%02d", minutes, seconds));
+        }
+      }
     }
   }
 

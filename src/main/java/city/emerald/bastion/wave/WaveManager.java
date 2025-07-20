@@ -58,6 +58,12 @@ public class WaveManager {
   }
 
   public void startWave(int waveNumber) {
+    // Check if waves can start (not paused)
+    if (!gameStateManager.canStartWave()) {
+      plugin.getLogger().info("Cannot start wave - game is paused");
+      return;
+    }
+    
     this.waveState = WaveState.PREPARING;
     this.killCount = 0;
 
@@ -243,6 +249,11 @@ public class WaveManager {
    */
   private void handleWaveTimer() {
     if (waveState != WaveState.ACTIVE) {
+      return;
+    }
+    
+    // Check if game is paused - if so, do nothing
+    if (gameStateManager.isPaused()) {
       return;
     }
     

@@ -27,11 +27,15 @@ public class GameStateManager implements Listener {
   private int minPlayers;
   private int maxPlayers;
   private int currentWaveNumber = 0;
+  
+  // Pause state management
+  private GameState pausedFromState;
 
   public enum GameState {
     LOBBY("Waiting for players..."),
     PREPARING("Preparing game..."),
     ACTIVE("Game in progress"),
+    PAUSED("Game paused"),
     FAILED("Wave failed - restarting..."),
     COMPLETED("Game completed!");
 
@@ -211,5 +215,47 @@ public class GameStateManager implements Listener {
         endGame();
       }
     }
+  }
+  
+  /**
+   * Pause the game if it's in a pauseable state
+   * @return true if successfully paused, false if cannot pause
+   */
+  public boolean pauseGame() {
+    if (currentState == GameState.ACTIVE || currentState == GameState.PREPARING) {
+      pausedFromState = currentState;
+      currentState = GameState.PAUSED;
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * Resume the game from paused state
+   * @return true if successfully resumed, false if not paused
+   */
+  public boolean resumeGame() {
+    if (currentState == GameState.PAUSED && pausedFromState != null) {
+      currentState = pausedFromState;
+      pausedFromState = null;
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * Check if the game is currently paused
+   * @return true if in PAUSED state
+   */
+  public boolean isPaused() {
+    return currentState == GameState.PAUSED;
+  }
+  
+  /**
+   * Check if a new wave can start (not paused)
+   * @return true if waves can start/continue
+   */
+  public boolean canStartWave() {
+    return !isPaused();
   }
 }
