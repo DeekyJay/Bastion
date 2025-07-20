@@ -80,26 +80,27 @@ mob_ai:
   scan_interval_ticks: 100  # Interval for scanning targets (in ticks)
 
 loot_table_settings:
-  common_loot_probability: 0.05  # Probability of common loot dropping
-  common_loot_max_items: 5  # Maximum number of common loot items
-  bonus_loot_probability: 0.01  # Probability of bonus loot dropping
-  bonus_loot_max_items: 2  # Maximum number of bonus loot items
+  common_loot_probability: 0.4  # Probability of common loot dropping (increased from 0.05)
+  common_loot_max_items: 8  # Maximum number of common loot items (increased from 5)
+  bonus_loot_probability: 0.15  # Probability of bonus loot dropping (increased from 0.01)
+  bonus_loot_max_items: 4  # Maximum number of bonus loot items (increased from 2)
+  wave_scaling_base: 0.05  # Base multiplier for exponential wave scaling (x in formula: (1.0 + x)^currentWave)
 
 common_loot:
-  zombie: "leather,iron_nugget,gold_nugget"
-  skeleton: "oak_log,coal"
-  spider: "sugar_cane,cobblestone"
-  creeper: "diamond,redstone"
-  enderman: "obsidian,nether_wart"
-  witch: "lapis_lazuli,blaze_rod"
+  zombie: "leather,iron_nugget,gold_nugget,iron_ingot,bread,carrot,potato"
+  skeleton: "oak_log,coal,bone,arrow,iron_ingot,stone,cobblestone"
+  spider: "sugar_cane,cobblestone,string,stone,coal,iron_nugget"
+  creeper: "diamond,redstone,gunpowder,iron_ingot,gold_ingot,coal"
+  enderman: "obsidian,nether_wart,ender_pearl,iron_ingot,diamond"
+  witch: "lapis_lazuli,blaze_rod,redstone,glowstone_dust,iron_ingot,gold_ingot"
 
 bonus_loot:
-  zombie: "golden_apple"
-  skeleton: "experience_bottle"
-  spider: "villager_spawn_egg"
-  creeper: "tnt"
-  enderman: "totem_of_undying"
-  witch: "ghast_tear"
+  zombie: "golden_apple,iron_sword,leather_chestplate,cooked_beef,iron_pickaxe"
+  skeleton: "experience_bottle,bow,iron_helmet,enchanted_book,diamond"
+  spider: "villager_spawn_egg,iron_boots,web,diamond,enchanted_book"
+  creeper: "tnt,diamond_pickaxe,diamond_sword,enchanted_book,emerald"
+  enderman: "totem_of_undying,diamond,ender_chest,shulker_box,enchanted_book"
+  witch: "ghast_tear,brewing_stand,cauldron,enchanted_book,diamond"
 
 # Defines the difficulty score for each mob type, used for calculating wave difficulty.
 # The score is a scalar based on health, damage, speed, and special abilities.
