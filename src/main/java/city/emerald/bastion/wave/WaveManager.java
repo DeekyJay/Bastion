@@ -68,7 +68,7 @@ public class WaveManager {
     // Calculate mob count based on wave number (more appropriate than player count for initial calculation)
     this.remainingMobs = calculateMobCount(waveNumber);
 
-    long preparationDelaySeconds = plugin.getConfig().getLong("wave.preparation_delay_seconds", 10L);
+    long preparationDelaySeconds = plugin.getLongSafe("wave.preparation_delay_seconds", 10L);
 
     // Announce wave start
     Bukkit.broadcastMessage(
@@ -141,7 +141,7 @@ public class WaveManager {
     
     // Schedule next wave (either repeat or advance)
     final int finalNextWave = nextWave;
-    long completionDelaySeconds = plugin.getConfig().getLong("wave.completion_delay_seconds", 10L);
+    long completionDelaySeconds = plugin.getLongSafe("wave.completion_delay_seconds", 10L);
     Bukkit.getScheduler().runTaskLater(plugin, () -> {
       startWave(finalNextWave);
     }, completionDelaySeconds * 20L);
@@ -247,7 +247,7 @@ public class WaveManager {
     }
     
     // Reload config value (allows runtime changes)
-    int waveDurationSeconds = plugin.getConfig().getInt("wave.wave_duration_seconds", 300);
+    int waveDurationSeconds = plugin.getIntSafe("wave.wave_duration_seconds", 300);
     
     long elapsedSeconds = getElapsedTime();
     long remainingSeconds = waveDurationSeconds - elapsedSeconds;
@@ -276,7 +276,7 @@ public class WaveManager {
    * Get remaining time in current wave in seconds
    */
   public long getRemainingTime() {
-    int waveDurationSeconds = plugin.getConfig().getInt("wave.wave_duration_seconds", 300);
+    int waveDurationSeconds = plugin.getIntSafe("wave.wave_duration_seconds", 300);
     return waveDurationSeconds - getElapsedTime();
   }
 }

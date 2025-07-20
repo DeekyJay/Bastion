@@ -360,9 +360,9 @@ public class MobSpawnManager implements Listener {
         }
     }
 
-    double startingDifficulty = plugin.getConfig().getDouble("wave.difficulty_scaling.starting_average_difficulty", 1.0);
-    double difficultyIncrease = plugin.getConfig().getDouble("wave.difficulty_scaling.average_difficulty_increase_percent", 5.0) / 100.0;
-    int maxFailedSwaps = plugin.getConfig().getInt("wave.difficulty_scaling.max_failed_swaps", 50);
+    double startingDifficulty = plugin.getDoubleSafe("wave.difficulty_scaling.starting_average_difficulty", 1.0);
+    double difficultyIncrease = plugin.getDoubleSafe("wave.difficulty_scaling.average_difficulty_increase_percent", 5.0) / 100.0;
+    int maxFailedSwaps = plugin.getIntSafe("wave.difficulty_scaling.max_failed_swaps", 50);
 
     double targetAverageDifficulty = startingDifficulty * Math.pow(1 + difficultyIncrease, waveNumber - 1);
 

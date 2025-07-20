@@ -167,7 +167,7 @@ public class VillageManager {
     // Get barrier radius from config, fallback to 80 if barrier manager not set
     int radius = barrierManager != null
       ? barrierManager.getBarrierRadius()
-      : plugin.getConfig().getInt("village.barrier.radius", 80);
+      : plugin.getIntSafe("village.barrier.radius", 80);
 
     for (Entity entity : world.getEntities()) {
       if (entity.getType() == EntityType.VILLAGER) {
@@ -298,6 +298,6 @@ public class VillageManager {
   private int getBarrierRadius() {
     return barrierManager != null
       ? barrierManager.getBarrierRadius()
-      : plugin.getConfig().getInt("village.barrier.radius", 80);
+      : plugin.getIntSafe("village.barrier.radius", 80);
   }
 }

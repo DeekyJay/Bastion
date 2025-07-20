@@ -55,8 +55,8 @@ public class GameStateManager implements Listener {
     this.currentState = GameState.LOBBY;
     this.activePlayers = new HashMap<>();
     this.isGameActive = false;
-    this.minPlayers = plugin.getConfig().getInt("min_players", 1);
-    this.maxPlayers = plugin.getConfig().getInt("max_players", 8);
+    this.minPlayers = plugin.getIntSafe("min_players", 1);
+    this.maxPlayers = plugin.getIntSafe("max_players", 8);
 
     Bukkit.getPluginManager().registerEvents(this, plugin);
   }
@@ -210,7 +210,7 @@ public class GameStateManager implements Listener {
     ) {
       if (
         waveManager.getCurrentWave() >=
-        plugin.getConfig().getInt("max_waves", 30)
+        plugin.getIntSafe("max_waves", 30)
       ) {
         endGame();
       }

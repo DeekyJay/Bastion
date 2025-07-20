@@ -99,6 +99,76 @@ public final class Bastion extends JavaPlugin implements Listener {
     logger.info("Bastion plugin enabled successfully!");
   }
 
+  // Safe config reading methods that handle both original types and string overrides
+  public int getIntSafe(String path, int defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Integer) {
+      return (Integer) value;
+    } else if (value instanceof String) {
+      try {
+        return Integer.parseInt((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid integer value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).intValue();
+    }
+    return defaultValue;
+  }
+
+  public long getLongSafe(String path, long defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Long) {
+      return (Long) value;
+    } else if (value instanceof String) {
+      try {
+        return Long.parseLong((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid long value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).longValue();
+    }
+    return defaultValue;
+  }
+
+  public double getDoubleSafe(String path, double defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Double) {
+      return (Double) value;
+    } else if (value instanceof String) {
+      try {
+        return Double.parseDouble((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid double value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).doubleValue();
+    }
+    return defaultValue;
+  }
+
+  public boolean getBooleanSafe(String path, boolean defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Boolean) {
+      return (Boolean) value;
+    } else if (value instanceof String) {
+      String str = (String) value;
+      if (str.equalsIgnoreCase("true")) return true;
+      if (str.equalsIgnoreCase("false")) return false;
+      getLogger().warning("Invalid boolean value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+    }
+    return defaultValue;
+  }
+
+  public String getStringSafe(String path, String defaultValue) {
+    // getString is already safe, but included for consistency
+    return getConfig().getString(path, defaultValue);
+  }
+
   @EventHandler
   public void onMobDeath(EntityDeathEvent event) {
     if (!gameStateManager.isGameActive()) { return; }
