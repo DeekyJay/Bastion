@@ -68,8 +68,9 @@ public class LootManager {
     // For now, let's use a default multiplier and always check for bonus items.
     // This can be customized later based on game state or other factors.
     int currentWave = gameStateManager.getCurrentWaveNumber();
-    double multiplier = 1.0 + (0.1 * currentWave);
-    boolean includeBonusItems = currentWave % 5 == 0; // Include bonus items every 5 waves
+    double scalingBase = plugin.getDoubleSafe("loot_table_settings.wave_scaling_base", 0.05);
+    double multiplier = Math.pow(1.0 + scalingBase, currentWave);
+    boolean includeBonusItems = true; // Allow bonus loot every wave instead of only every 5th wave
 
     List<ItemStack> customLoot = generateLoot(entityType, multiplier, includeBonusItems);
     event.getDrops().addAll(customLoot);
