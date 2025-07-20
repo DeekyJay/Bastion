@@ -90,45 +90,37 @@ public class BarrierManager implements Listener {
    */
   private void loadConfiguration() {
     this.barrierRadius =
-      plugin.getConfig().getInt("village.barrier.radius", 80);
+      plugin.getIntSafe("village.barrier.radius", 80);
     this.barrierHeight =
-      plugin.getConfig().getInt("village.barrier.height", 256);
+      plugin.getIntSafe("village.barrier.height", 256);
     this.domeShape =
-      plugin.getConfig().getBoolean("village.barrier.dome_shape", true);
+      plugin.getBooleanSafe("village.barrier.dome_shape", true);
     this.showUnderground =
-      plugin.getConfig().getBoolean("village.barrier.show_underground", true);
+      plugin.getBooleanSafe("village.barrier.show_underground", true);
     this.particleDensity =
-      plugin.getConfig().getDouble("effects.barrier.particle_density", 1.0);
+      plugin.getDoubleSafe("effects.barrier.particle_density", 1.0);
     this.particleSpacing =
-      plugin.getConfig().getInt("effects.barrier.particle_spacing", 2);
+      plugin.getIntSafe("effects.barrier.particle_spacing", 2);
     this.updateInterval =
-      plugin.getConfig().getInt("effects.barrier.update_interval", 20);
+      plugin.getIntSafe("effects.barrier.update_interval", 20);
 
     // Enhanced particle settings
     this.particleSize =
-      (float) plugin
-        .getConfig()
-        .getDouble("effects.barrier.particle_size", 4.0);
+      (float) plugin.getDoubleSafe("effects.barrier.particle_size", 4.0);
     this.useMultipleParticleTypes =
-      plugin
-        .getConfig()
-        .getBoolean("effects.barrier.multiple_particle_types", true);
+      plugin.getBooleanSafe("effects.barrier.multiple_particle_types", true);
     this.enableParticleAnimation =
-      plugin.getConfig().getBoolean("effects.barrier.particle_animation", true);
+      plugin.getBooleanSafe("effects.barrier.particle_animation", true);
     this.maxUndergroundDepth =
-      plugin.getConfig().getInt("effects.barrier.max_underground_depth", 20);
+      plugin.getIntSafe("effects.barrier.max_underground_depth", 20);
     this.debugMode =
-      plugin.getConfig().getBoolean("effects.barrier.debug_mode", false);
+      plugin.getBooleanSafe("effects.barrier.debug_mode", false);
     this.particleIntensity =
-      plugin.getConfig().getInt("effects.barrier.particle_intensity", 3);
+      plugin.getIntSafe("effects.barrier.particle_intensity", 3);
 
     // Load particle colors
-    String primaryColorStr = plugin
-      .getConfig()
-      .getString("effects.barrier.primary_color", "0,255,255"); // Bright cyan
-    String secondaryColorStr = plugin
-      .getConfig()
-      .getString("effects.barrier.secondary_color", "255,255,0"); // Bright yellow
+    String primaryColorStr = plugin.getStringSafe("effects.barrier.primary_color", "0,255,255"); // Bright cyan
+    String secondaryColorStr = plugin.getStringSafe("effects.barrier.secondary_color", "255,255,0"); // Bright yellow
     this.primaryColor = parseColor(primaryColorStr);
     this.secondaryColor = parseColor(secondaryColorStr);
   }

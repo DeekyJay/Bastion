@@ -99,6 +99,76 @@ public final class Bastion extends JavaPlugin implements Listener {
     logger.info("Bastion plugin enabled successfully!");
   }
 
+  // Safe config reading methods that handle both original types and string overrides
+  public int getIntSafe(String path, int defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Integer) {
+      return (Integer) value;
+    } else if (value instanceof String) {
+      try {
+        return Integer.parseInt((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid integer value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).intValue();
+    }
+    return defaultValue;
+  }
+
+  public long getLongSafe(String path, long defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Long) {
+      return (Long) value;
+    } else if (value instanceof String) {
+      try {
+        return Long.parseLong((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid long value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).longValue();
+    }
+    return defaultValue;
+  }
+
+  public double getDoubleSafe(String path, double defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Double) {
+      return (Double) value;
+    } else if (value instanceof String) {
+      try {
+        return Double.parseDouble((String) value);
+      } catch (NumberFormatException e) {
+        getLogger().warning("Invalid double value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+        return defaultValue;
+      }
+    } else if (value instanceof Number) {
+      return ((Number) value).doubleValue();
+    }
+    return defaultValue;
+  }
+
+  public boolean getBooleanSafe(String path, boolean defaultValue) {
+    Object value = getConfig().get(path);
+    if (value instanceof Boolean) {
+      return (Boolean) value;
+    } else if (value instanceof String) {
+      String str = (String) value;
+      if (str.equalsIgnoreCase("true")) return true;
+      if (str.equalsIgnoreCase("false")) return false;
+      getLogger().warning("Invalid boolean value for config key '" + path + "': " + value + ". Using default: " + defaultValue);
+    }
+    return defaultValue;
+  }
+
+  public String getStringSafe(String path, String defaultValue) {
+    // getString is already safe, but included for consistency
+    return getConfig().getString(path, defaultValue);
+  }
+
   @EventHandler
   public void onMobDeath(EntityDeathEvent event) {
     if (!gameStateManager.isGameActive()) { return; }
@@ -242,6 +312,34 @@ public final class Bastion extends JavaPlugin implements Listener {
           statsManager.onGameEnd();
           sender.sendMessage("§cGame stopped.");
           break;
+        case "pause":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to pause the game!");
+            return true;
+          }
+          if (!gameStateManager.isPaused() && (gameStateManager.isGameActive() || gameStateManager.getCurrentState() == GameStateManager.GameState.PREPARING)) {
+            gameStateManager.pauseGame();
+            sender.sendMessage("§6Game paused.");
+            getServer().broadcastMessage("§6Game has been paused by an admin.");
+          } else if (gameStateManager.isPaused()) {
+            sender.sendMessage("§eGame is already paused.");
+          } else {
+            sender.sendMessage("§cNo game is running to pause.");
+          }
+          break;
+        case "resume":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to resume the game!");
+            return true;
+          }
+          if (gameStateManager.isPaused()) {
+            gameStateManager.resumeGame();
+            sender.sendMessage("§aGame resumed.");
+            getServer().broadcastMessage("§aGame has been resumed by an admin.");
+          } else {
+            sender.sendMessage("§cGame is not paused.");
+          }
+          break;
         case "upgrade":
           if (args.length < 3) {
             sender.sendMessage(
@@ -264,6 +362,26 @@ public final class Bastion extends JavaPlugin implements Listener {
           break;
         case "info":
           showGameStatus(sender);
+          break;
+        case "debug":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to use debug commands!");
+            return true;
+          }
+          // Toggle debug mode implementation would go here
+          sender.sendMessage("§eDebug command not yet implemented.");
+          break;
+        case "stats":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to view player stats!");
+            return true;
+          }
+          if (args.length < 2) {
+            sender.sendMessage("§cUsage: /bastion stats <player>");
+            return true;
+          }
+          // Player stats viewing implementation would go here
+          sender.sendMessage("§eStats command not yet implemented.");
           break;
         default:
           sender.sendMessage("§cUnknown command. Use /bastion for help.");
@@ -323,13 +441,6 @@ public final class Bastion extends JavaPlugin implements Listener {
         event.setDamage(event.getDamage() * (1 - reduction));
       }
     }
-
-    // Apply wave difficulty scaling to mob damage
-    if (event.getDamager() instanceof Monster) {
-      double baseDamage = event.getDamage();
-      double multiplier = waveManager.getDifficultyMultiplier();
-      event.setDamage(baseDamage * multiplier);
-    }
   }
 
   // Utility methods for wave management (to be implemented)
@@ -349,13 +460,6 @@ public final class Bastion extends JavaPlugin implements Listener {
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
     if (!gameStateManager.isGameActive() || !waveManager.isWaveActive()) {
       return;
-    }
-
-    // Apply wave-based damage scaling
-    if (event.getDamager() instanceof Monster) {
-      double damage = event.getDamage();
-      double multiplier = waveManager.getDifficultyMultiplier();
-      event.setDamage(damage * multiplier);
     }
 
     // Note: Mob kill tracking is handled in onMobDeath() method to prevent double counting
@@ -411,6 +515,10 @@ public final class Bastion extends JavaPlugin implements Listener {
     sender.sendMessage(
       "§7Game State: §f" + gameStateManager.getCurrentState().getMessage()
     );
+    
+    if (gameStateManager.isPaused()) {
+      sender.sendMessage("§7Status: §6PAUSED");
+    }
 
     if (villageManager.getVillageCenter().isPresent()) {
       sender.sendMessage(
@@ -428,6 +536,15 @@ public final class Bastion extends JavaPlugin implements Listener {
         "§7Total Kills: §f" +
         statsManager.getCurrentGameStats().getTotalMobsKilled()
       );
+      
+      if (waveManager.isWaveActive() && !gameStateManager.isPaused()) {
+        long remainingTime = waveManager.getRemainingTime();
+        if (remainingTime > 0) {
+          long minutes = remainingTime / 60;
+          long seconds = remainingTime % 60;
+          sender.sendMessage(String.format("§7Time Remaining: §f%d:%02d", minutes, seconds));
+        }
+      }
     }
   }
 

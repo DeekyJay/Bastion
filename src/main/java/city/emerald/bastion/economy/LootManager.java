@@ -47,10 +47,10 @@ public class LootManager {
     this.random = new Random();
 
     // Retrieve configuration values
-    double commonLootProbability = plugin.getConfig().getDouble("loot_table_settings.common_loot_probability", 0.05);
-    int commonLootMaxItems = plugin.getConfig().getInt("loot_table_settings.common_loot_max_items", 5);
-    double bonusLootProbability = plugin.getConfig().getDouble("loot_table_settings.bonus_loot_probability", 0.01);
-    int bonusLootMaxItems = plugin.getConfig().getInt("loot_table_settings.bonus_loot_max_items", 2);
+    double commonLootProbability = plugin.getDoubleSafe("loot_table_settings.common_loot_probability", 0.05);
+    int commonLootMaxItems = plugin.getIntSafe("loot_table_settings.common_loot_max_items", 5);
+    double bonusLootProbability = plugin.getDoubleSafe("loot_table_settings.bonus_loot_probability", 0.01);
+    int bonusLootMaxItems = plugin.getIntSafe("loot_table_settings.bonus_loot_max_items", 2);
 
     // Load loot tables from config
     commonLootTable = buildLootTable("common_loot", commonLootProbability, commonLootMaxItems);

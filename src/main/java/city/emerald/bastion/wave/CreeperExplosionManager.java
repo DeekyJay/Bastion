@@ -42,10 +42,10 @@ public class CreeperExplosionManager implements Listener {
   }
 
   private void loadConfiguration() {
-    this.enabled = plugin.getConfig().getBoolean("creeper_explosion.enabled", true);
-    this.countdownSeconds = plugin.getConfig().getInt("creeper_explosion.countdown_seconds", 5);
-    this.progressCheckInterval = plugin.getConfig().getInt("creeper_explosion.progress_check_interval", 20);
-    this.positionHistorySize = plugin.getConfig().getInt("creeper_explosion.position_history_size", 3);
+    this.enabled = plugin.getBooleanSafe("creeper_explosion.enabled", true);
+    this.countdownSeconds = plugin.getIntSafe("creeper_explosion.countdown_seconds", 5);
+    this.progressCheckInterval = plugin.getIntSafe("creeper_explosion.progress_check_interval", 20);
+    this.positionHistorySize = plugin.getIntSafe("creeper_explosion.position_history_size", 3);
   }
 
   @EventHandler

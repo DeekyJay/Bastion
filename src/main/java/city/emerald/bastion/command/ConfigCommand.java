@@ -43,8 +43,7 @@ public class ConfigCommand implements CommandExecutor, TabCompleter {
                 // Rebuild the value string if it contains spaces
                 String value = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
                 plugin.getConfig().set(key, value);
-                plugin.saveConfig();
-                sender.sendMessage("§aConfiguration saved: " + key + " = " + value);
+                sender.sendMessage("§aConfiguration updated (temporary): " + key + " = " + value);
                 break;
             case "get":
                 sender.sendMessage("§aFetching configuration value...");

@@ -7,9 +7,11 @@ admins:
 
 wave:
   # Time in seconds to wait after a wave is completed before starting the next one.
-  completion_delay_seconds: 10
+  completion_delay_seconds: 120
   # Time in seconds for the countdown before a new wave becomes active.
   preparation_delay_seconds: 10
+  # Maximum duration in seconds for a wave before it times out and fails.
+  wave_duration_seconds: 300
 
   # Parameters for the wave difficulty generation heuristic.
   difficulty_scaling:
@@ -20,22 +22,6 @@ wave:
     # The number of consecutive failed attempts to improve the mob set before halting.
     max_failed_swaps: 50
 
-  # UNUSED: Base number of mobs per wave (before player scaling)
-  base_mob_count: 10
-  # UNUSED: Additional mobs per player
-  mobs_per_player: 2
-  # UNUSED: Base difficulty multiplier per wave
-  difficulty_multiplier: 1.5
-  # UNUSED: Mob stat scaling
-  scaling:
-    health: 1.5
-    damage: 1.5
-  # UNUSED: Player count scaling
-  player_scaling:
-    mob_health: 0.3  # Additional 30% health per player
-  # UNUSED: Wave completion requirements
-  completion:
-    require_all_mobs_defeated: true
 
 village:
   # Barrier dimensions (in blocks)
@@ -45,28 +31,17 @@ village:
     # Barrier visualization settings
     dome_shape: true  # Use 3D dome instead of cylindrical wall
     show_underground: true  # Show particles below ground in air blocks
-  # UNUSED: Villager settings
-  villagers:
-    health_multiplier: 2.0
-    regeneration:
-      enabled: true
-      amount: 1.0  # Hearts per second between waves
 
 economy:
-  # UNUSED: Base emerald values for different activities
   rewards:
     wave_completion: 5
     boss_wave_completion: 20
     villager_saved: 3
-  # UNUSED: Trading settings
-  trading:
-    enhanced_trades_unlock_wave: 5
-    boss_wave_special_trades: true
+
 
 # Visual and sound effects
 effects:
   barrier:
-    # UNUSED: Barrier particle effects
     visible: true
     particle_density: 1.0  # Increased for better dome visibility
     particle_spacing: 1  # Reduced spacing for denser barrier (was 2)
@@ -85,7 +60,6 @@ effects:
     # Color settings (R,G,B format)
     primary_color: "0,255,255"    # Bright cyan
     secondary_color: "255,255,0"  # Bright yellow for animation
-  # UNUSED: Wave start effects
   spawn:
     warning_sound: true
     warning_particles: true
@@ -104,11 +78,6 @@ mob_ai:
   target_switch_chance: 0.1  # Chance to switch targets
   max_target_distance: 50.0  # Maximum distance for targeting
   scan_interval_ticks: 100  # Interval for scanning targets (in ticks)
-
-# UNUSED: Debug settings
-debug:
-  enabled: false
-  log_wave_stats: false
 
 loot_table_settings:
   common_loot_probability: 0.05  # Probability of common loot dropping
