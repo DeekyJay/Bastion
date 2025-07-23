@@ -86,21 +86,39 @@ loot_table_settings:
   bonus_loot_max_items: 4  # Maximum number of bonus loot items (increased from 2)
   wave_scaling_base: 0.05  # Base multiplier for exponential wave scaling (x in formula: (1.0 + x)^currentWave)
 
+# Loot tables for different mobs, including common and bonus loot.
+# Common loot is dropped by all mobs, while bonus loot is rarer and more valuable.  
+# enchanted books and potions will be included in bonus loot, but need 
+# special handling to randomly select the enchantment/potion type.
+
 common_loot:
-  zombie: "leather,iron_nugget,gold_nugget,iron_ingot,bread,carrot,potato"
-  skeleton: "oak_log,coal,bone,arrow,iron_ingot,stone,cobblestone"
-  spider: "sugar_cane,cobblestone,string,stone,coal,iron_nugget"
-  creeper: "diamond,redstone,gunpowder,iron_ingot,gold_ingot,coal"
-  enderman: "obsidian,nether_wart,ender_pearl,iron_ingot,diamond"
-  witch: "lapis_lazuli,blaze_rod,redstone,glowstone_dust,iron_ingot,gold_ingot"
+  zombie: "leather,iron_nugget,gold_nugget,iron_ingot,bread,carrot,potato" # 1.0
+  skeleton: "leather, oak_log,coal,bone,arrow,iron_ingot,stone,cobblestone" # 1.2
+  spider: "sugar_cane,cobblestone,string,cobweb,stone,coal,iron_nugget" # 1.3
+  creeper: "flint,gunpowder,iron_ingot,gold_ingot,coal" # 1.8
+  enderman: "obsidian,nether_wart,ender_pearl,iron_ingot,diamond" # 2.2
+  witch: "lapis_lazuli,blaze_rod,redstone,glowstone_dust,iron_ingot,gold_ingot" # 2.5
+  pillager: "crossbow,iron_ingot,wooden_plank,feather" # 1.3
+  stray: "tipped_arrow,emerald" # 1.4
+  cave_spider: "spider_eye,cobweb" # 1.5
+  phantom: "phantom_membrane,feather,diamond_sword,iron_chestplate" # 1.6
+  blaze: "blaze_powder,blaze_rod,fire_charge,diamond" # 1.9
+  vindicator: "iron_ingot,emerald" # 2.0
+  evoker: "totem_of_undying,iron_ingot,emerald" # 3.5
+  vex: "totem_of_undying,iron_ingot" # 3.7
+  ravager: "totem_of_undying,emerald,diamond,iron_ingot" # 4.0
 
 bonus_loot:
-  zombie: "golden_apple,iron_sword,leather_chestplate,cooked_beef,iron_pickaxe"
-  skeleton: "experience_bottle,bow,iron_helmet,enchanted_book,diamond"
-  spider: "villager_spawn_egg,iron_boots,web,diamond,enchanted_book"
-  creeper: "tnt,diamond_pickaxe,diamond_sword,enchanted_book,emerald"
-  enderman: "totem_of_undying,diamond,ender_chest,shulker_box,enchanted_book"
-  witch: "ghast_tear,brewing_stand,cauldron,enchanted_book,diamond"
+  zombie: "gravel,egg,golden_apple,cooked_beef,emerald"
+  skeleton: "experience_bottle,bow,diamond,emerald"
+  spider: "villager_spawn_egg,iron_boots,web,diamond,emerald"
+  stray: "tipped_arrow,emerald,book"
+  cave_spider: "experience_bottle,book"
+  creeper: "tnt,emerald"
+  blaze: "blaze_powder,blaze_rod,fire_charge,diamond"
+  phantom: "phantom_membrane,feather"
+  enderman: "totem_of_undying,diamond,ender_chest,shulker_box"
+  witch: "ghast_tear,brewing_stand,cauldron,diamond"
 
 # Defines the difficulty score for each mob type, used for calculating wave difficulty.
 # The score is a scalar based on health, damage, speed, and special abilities.
@@ -108,15 +126,16 @@ bonus_loot:
 mob_difficulty:
   zombie: 1.0
   skeleton: 1.2
-  stray: 1.4
   spider: 1.3
-  cave_spider: 1.5
   creeper: 1.8
-  phantom: 1.6
-  witch: 2.5
   enderman: 2.2
-  vindicator: 2.0
+  witch: 2.5
   pillager: 1.3
+  stray: 1.4
+  cave_spider: 1.5
+  phantom: 1.6
+  blaze: 1.9
+  vindicator: 2.0
   evoker: 3.5
-  vex: 1.7
+  vex: 3.7
   ravager: 4.0
