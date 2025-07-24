@@ -371,6 +371,14 @@ public final class Bastion extends JavaPlugin implements Listener {
           // Toggle debug mode implementation would go here
           sender.sendMessage("§eDebug command not yet implemented.");
           break;
+        case "killmobs":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to kill spawned mobs!");
+            return true;
+          }
+          int killedCount = mobSpawnManager.killAllSpawnedMobs();
+          sender.sendMessage("§aKilled " + killedCount + " spawned mobs.");
+          break;
         case "stats":
           if (!sender.hasPermission("bastion.admin")) {
             sender.sendMessage("§cYou don't have permission to view player stats!");

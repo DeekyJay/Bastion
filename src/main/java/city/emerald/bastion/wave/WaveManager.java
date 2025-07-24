@@ -18,8 +18,7 @@ public class WaveManager {
   private MobSpawnManager mobSpawnManager;
   private WaveState waveState;
   private int currentWave;
-  private int remainingMobs;
-  private int killCount;
+  // remainingMobs and killCount no longer used - we use living mob count directly
   
   // Wave timer fields
   private BukkitTask waveTimerTask;
@@ -44,8 +43,7 @@ public class WaveManager {
     this.gameStateManager = gameStateManager;
     this.waveState = WaveState.INACTIVE;
     this.currentWave = 0;
-    this.remainingMobs = 0;
-    this.killCount = 0;
+    // Removed remainingMobs and killCount - using living mob count directly
   }
 
   /**
@@ -63,10 +61,10 @@ public class WaveManager {
     }
     
     this.waveState = WaveState.PREPARING;
-    this.killCount = 0;
+    // No longer track killCount - using living mob count directly
 
-    // Calculate mob count based on wave number (more appropriate than player count for initial calculation)
-    this.remainingMobs = calculateMobCount(waveNumber);
+    // Calculate mob count for spawning
+    final int mobsToSpawn = calculateMobCount(waveNumber);
 
     long preparationDelaySeconds = plugin.getLongSafe("wave.preparation_delay_seconds", 10L);
 
@@ -94,9 +92,9 @@ public class WaveManager {
             lightningManager.start();
           }
 
-          // Spawn the wave using the new system
+          // Spawn the wave using the calculated mob count
           if (mobSpawnManager != null) {
-            mobSpawnManager.spawnWave(waveNumber, remainingMobs);
+            mobSpawnManager.spawnWave(waveNumber, mobsToSpawn);
           }
 
           // Announce the wave start
@@ -149,7 +147,7 @@ public class WaveManager {
 
   public void stopWave() {
     this.waveState = WaveState.INACTIVE;
-    this.remainingMobs = 0;
+    // No longer track remainingMobs - using living mob count directly
     
     // Cancel wave timer
     if (waveTimerTask != null) {
@@ -161,21 +159,8 @@ public class WaveManager {
   }
 
   public void onMobKill() {
-    killCount++;
-    remainingMobs--;
-
-    // Safety check: prevent remainingMobs from going below 0
-    if (remainingMobs < 0) {
-      remainingMobs = 0;
-    }
-
-    if (remainingMobs <= 0 && waveState == WaveState.ACTIVE) {
-      // All mobs killed - set COMPLETED state and complete wave
-      gameStateManager.setCurrentState(GameStateManager.GameState.COMPLETED);
-      // Trigger instant mob cleanup before completing wave
-      cleanupRemainingMobs();
-      completeWave();
-    }
+    // This method is deprecated - wave completion is now checked via timer using living mob count
+    // Can be removed entirely
   }
 
   private int calculateMobCount(int waveNumber) {
@@ -207,15 +192,31 @@ public class WaveManager {
   }
 
   public int getRemainingMobs() {
-    return remainingMobs;
+    // Return living mob count from MobSpawnManager
+    if (mobSpawnManager != null) {
+      return mobSpawnManager.getImmediateLivingMobCount();
+    }
+    return 0;
   }
 
   public int getKillCount() {
-    return killCount;
+    // Calculate kill count as total spawned minus living
+    if (mobSpawnManager != null) {
+      int totalSpawned = calculateMobCount(currentWave); // This is the intended spawn count
+      int livingCount = mobSpawnManager.getImmediateLivingMobCount();
+      return Math.max(0, totalSpawned - livingCount);
+    }
+    return 0;
   }
 
   public int getTotalMobs() {
-    return killCount + remainingMobs;
+    // Return the intended total mob count for current wave
+    return calculateMobCount(currentWave);
+  }
+
+  public void adjustRemainingMobs(int actualSpawned) {
+    // This method is no longer needed - living mob count is tracked automatically
+    // Kept for compatibility but does nothing
   }
 
   public WaveState getWaveState() {
@@ -244,6 +245,18 @@ public class WaveManager {
     // Check if game is paused - if so, do nothing
     if (gameStateManager.isPaused()) {
       return;
+    }
+    
+    // Check for wave completion using living mob count
+    if (mobSpawnManager != null) {
+      int livingMobs = mobSpawnManager.getImmediateLivingMobCount();
+      if (livingMobs <= 0) {
+        // All mobs killed - set COMPLETED state and complete wave
+        gameStateManager.setCurrentState(GameStateManager.GameState.COMPLETED);
+        cleanupRemainingMobs();
+        completeWave();
+        return;
+      }
     }
     
     // Reload config value (allows runtime changes)

@@ -219,17 +219,6 @@ public class MobAI implements Listener {
       return;
     }
 
-    // Allow natural targeting but modify weights
-    if (event.getTarget() instanceof Player) {
-      if (random.nextDouble() > playerTargetWeight) {
-        event.setCancelled(true);
-      }
-    } else if (event.getTarget() instanceof Villager) {
-      if (random.nextDouble() > villagerTargetWeight) {
-        event.setCancelled(true);
-      }
-    }
-
     if (!(event.getEntity() instanceof org.bukkit.entity.Creeper)) {
       return;
     }

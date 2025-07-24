@@ -43,6 +43,7 @@ public class MobSpawnManager implements Listener {
   private BukkitTask spawnTask;
   private Map<LivingEntity, Long> spawnTimes;
   private int currentMobCount;
+  private Location previousSpawnLocation = null;
   private static final long MOB_LIFETIME = 5 * 60 * 20; // 5 minutes in ticks
   private static final int SPAWN_INTERVAL = 40; // 2 seconds between spawns
   private static final Map<Integer, List<EntityType>> WAVE_MOB_TYPES = new HashMap<>();
@@ -152,12 +153,31 @@ public class MobSpawnManager implements Listener {
     currentMobCount = 0;
   }
 
+  /**
+   * Gets the real-time count of living (valid) mobs.
+   * @return The number of currently living mobs
+   */
+  public int getLivingMobCount() {
+    return getImmediateLivingMobCount();
+  }
+
+  /**
+   * Gets an immediate count of living (valid) mobs by checking all tracked mobs right now.
+   * Use this when you need the most current count without waiting for the timer update.
+   * @return The number of currently living mobs (calculated immediately)
+   */
+  public int getImmediateLivingMobCount() {
+    return (int) spawnTimes.keySet().stream()
+      .filter(LivingEntity::isValid)
+      .count();
+  }
+
   private void trySpawnMob() {
     if (waveManager.getRemainingMobs() <= 0) {
       return;
     }
 
-    Location spawnLoc = findSafeSpawnLocation();
+    Location spawnLoc = findSpawnLocationWithRetry();
     if (spawnLoc == null) {
       return;
     }
@@ -166,6 +186,10 @@ public class MobSpawnManager implements Listener {
     LivingEntity mob = (LivingEntity) spawnLoc
       .getWorld()
       .spawnEntity(spawnLoc, mobType);
+
+    // Log spawn location for debugging
+    plugin.getLogger().info(String.format("Spawned %s at coordinates: X=%.2f, Y=%.2f, Z=%.2f", 
+        mobType.name(), spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()));
 
     // Equip mobs to prevent them from burning in daylight
     if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
@@ -248,6 +272,22 @@ public class MobSpawnManager implements Listener {
     return null;
   }
 
+  private Location findSpawnLocationWithRetry() {
+    for (int retry = 0; retry < 50; retry++) {
+      Location loc = findSafeSpawnLocation();
+      if (loc != null) {
+        previousSpawnLocation = loc.clone();
+        return loc;
+      }
+      
+      if (previousSpawnLocation != null) {
+        return previousSpawnLocation.clone();
+      }
+    }
+    
+    return null;
+  }
+
   private boolean isValidSpawnLocation(Location loc) {
     if (
       !barrierManager.isInBarrier(loc, villageManager.getVillageCenter().get())
@@ -296,15 +336,20 @@ public class MobSpawnManager implements Listener {
    */
   public void spawnWave(int waveNumber, int mobCount) {
     List<EntityType> mobList = generateMobListForWave(waveNumber, mobCount);
+    int actualSpawned = 0;
 
     for (EntityType mobType : mobList) {
-      Location spawnLoc = findSafeSpawnLocation();
+      Location spawnLoc = findSpawnLocationWithRetry();
       if (spawnLoc == null) {
         plugin.getLogger().warning("Could not find a safe spawn location for wave " + waveNumber);
         continue;
       }
 
       LivingEntity mob = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, mobType);
+
+      // Log spawn location for debugging
+      plugin.getLogger().info(String.format("Spawned %s at coordinates: X=%.2f, Y=%.2f, Z=%.2f", 
+          mobType.name(), spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()));
 
       // Equip mobs to prevent them from burning in daylight
       if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
@@ -331,8 +376,12 @@ public class MobSpawnManager implements Listener {
       // Track spawn time
       spawnTimes.put(mob, System.currentTimeMillis());
       currentMobCount++;
+      actualSpawned++;
     }
-    plugin.getLogger().info("Spawned " + mobList.size() + " mobs for wave " + waveNumber);
+    
+    // Update WaveManager with actual spawned count
+    waveManager.adjustRemainingMobs(actualSpawned);
+    plugin.getLogger().info("Spawned " + actualSpawned + " of " + mobCount + " requested mobs for wave " + waveNumber);
   }
 
   /**
@@ -431,5 +480,25 @@ public class MobSpawnManager implements Listener {
     currentMobCount = 0;
 
     plugin.getLogger().info("Mob cleanup completed");
+  }
+
+  /**
+   * Kill all currently spawned mobs to generate death logs for debugging
+   * @return The number of mobs killed
+   */
+  public int killAllSpawnedMobs() {
+    int killedCount = 0;
+    
+    // Copy keys to avoid ConcurrentModificationException
+    List<LivingEntity> mobsToKill = new ArrayList<>(spawnTimes.keySet());
+    
+    for (LivingEntity mob : mobsToKill) {
+      if (mob.isValid()) {
+        mob.setHealth(0); // Kill the mob to trigger death event
+        killedCount++;
+      }
+    }
+    
+    return killedCount;
   }
 }
