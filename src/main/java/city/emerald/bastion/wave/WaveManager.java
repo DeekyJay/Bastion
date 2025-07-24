@@ -218,6 +218,10 @@ public class WaveManager {
     return killCount + remainingMobs;
   }
 
+  public void adjustRemainingMobs(int actualSpawned) {
+    this.remainingMobs = actualSpawned;
+  }
+
   public WaveState getWaveState() {
     return waveState;
   }

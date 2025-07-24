@@ -43,6 +43,7 @@ public class MobSpawnManager implements Listener {
   private BukkitTask spawnTask;
   private Map<LivingEntity, Long> spawnTimes;
   private int currentMobCount;
+  private Location previousSpawnLocation = null;
   private static final long MOB_LIFETIME = 5 * 60 * 20; // 5 minutes in ticks
   private static final int SPAWN_INTERVAL = 40; // 2 seconds between spawns
   private static final Map<Integer, List<EntityType>> WAVE_MOB_TYPES = new HashMap<>();
@@ -157,7 +158,7 @@ public class MobSpawnManager implements Listener {
       return;
     }
 
-    Location spawnLoc = findSafeSpawnLocation();
+    Location spawnLoc = findSpawnLocationWithRetry();
     if (spawnLoc == null) {
       return;
     }
@@ -248,6 +249,22 @@ public class MobSpawnManager implements Listener {
     return null;
   }
 
+  private Location findSpawnLocationWithRetry() {
+    for (int retry = 0; retry < 50; retry++) {
+      Location loc = findSafeSpawnLocation();
+      if (loc != null) {
+        previousSpawnLocation = loc.clone();
+        return loc;
+      }
+      
+      if (previousSpawnLocation != null) {
+        return previousSpawnLocation.clone();
+      }
+    }
+    
+    return null;
+  }
+
   private boolean isValidSpawnLocation(Location loc) {
     if (
       !barrierManager.isInBarrier(loc, villageManager.getVillageCenter().get())
@@ -296,9 +313,10 @@ public class MobSpawnManager implements Listener {
    */
   public void spawnWave(int waveNumber, int mobCount) {
     List<EntityType> mobList = generateMobListForWave(waveNumber, mobCount);
+    int actualSpawned = 0;
 
     for (EntityType mobType : mobList) {
-      Location spawnLoc = findSafeSpawnLocation();
+      Location spawnLoc = findSpawnLocationWithRetry();
       if (spawnLoc == null) {
         plugin.getLogger().warning("Could not find a safe spawn location for wave " + waveNumber);
         continue;
@@ -331,8 +349,12 @@ public class MobSpawnManager implements Listener {
       // Track spawn time
       spawnTimes.put(mob, System.currentTimeMillis());
       currentMobCount++;
+      actualSpawned++;
     }
-    plugin.getLogger().info("Spawned " + mobList.size() + " mobs for wave " + waveNumber);
+    
+    // Update WaveManager with actual spawned count
+    waveManager.adjustRemainingMobs(actualSpawned);
+    plugin.getLogger().info("Spawned " + actualSpawned + " of " + mobCount + " requested mobs for wave " + waveNumber);
   }
 
   /**
