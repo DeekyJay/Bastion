@@ -205,28 +205,17 @@ public class MobSpawnManager implements Listener {
   ) {
     List<EntityType> initialMobs = new ArrayList<>();
     
-    for (int i = 0; i < mobCount; i++) {
-      // Calculate probabilities for all mob types
-      double[] probabilities = new double[availableMobTypes.size()];
-      double totalProbability = 0.0;
+    while (initialMobs.size() < mobCount) {
+      // Pick random mob
+      EntityType candidateMob = availableMobTypes.get(random.nextInt(availableMobTypes.size()));
       
-      for (int j = 0; j < availableMobTypes.size(); j++) {
-        EntityType mobType = availableMobTypes.get(j);
-        double mobDifficulty = mobDifficultyMap.getOrDefault(mobType, 1.0);
-        probabilities[j] = calculateSelectionProbability(targetDifficulty, mobDifficulty);
-        totalProbability += probabilities[j];
-      }
+      // Calculate acceptance probability based on difficulty
+      double mobDifficulty = mobDifficultyMap.getOrDefault(candidateMob, 1.0);
+      double acceptanceProbability = calculateSelectionProbability(targetDifficulty, mobDifficulty);
       
-      // Weighted random selection
-      double randomValue = random.nextDouble() * totalProbability;
-      double cumulativeProbability = 0.0;
-      
-      for (int j = 0; j < availableMobTypes.size(); j++) {
-        cumulativeProbability += probabilities[j];
-        if (randomValue <= cumulativeProbability) {
-          initialMobs.add(availableMobTypes.get(j));
-          break;
-        }
+      // Accept if random number is less than or equal to probability
+      if (random.nextDouble() <= acceptanceProbability) {
+        initialMobs.add(candidateMob);
       }
     }
     
