@@ -451,13 +451,6 @@ public final class Bastion extends JavaPlugin implements Listener {
     }
   }
 
-  // Utility methods for wave management (to be implemented)
-  private void startWave(int waveNumber) {
-    waveManager.startWave(waveNumber);
-    mobSpawnManager.startSpawning();
-    Bukkit.broadcastMessage("§6Wave " + waveNumber + " is starting!");
-  }
-
   private void stopWave() {
     waveManager.stopWave();
     mobSpawnManager.stopSpawning();

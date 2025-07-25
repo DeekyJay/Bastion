@@ -1,15 +1,12 @@
 package city.emerald.bastion.wave;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,7 +21,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import city.emerald.bastion.BarrierManager;
@@ -44,38 +40,6 @@ public class MobSpawnManager implements Listener {
   private Map<LivingEntity, Long> spawnTimes;
   private int currentMobCount;
   private Location previousSpawnLocation = null;
-  private static final long MOB_LIFETIME = 5 * 60 * 20; // 5 minutes in ticks
-  private static final int SPAWN_INTERVAL = 40; // 2 seconds between spawns
-  private static final Map<Integer, List<EntityType>> WAVE_MOB_TYPES = new HashMap<>();
-
-  static {
-    // Basic waves (1-4)
-    List<EntityType> basicMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON
-    );
-
-    // Medium waves (5-9)
-    List<EntityType> mediumMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON,
-      EntityType.SPIDER,
-      EntityType.CREEPER
-    );
-
-    // Elite waves (10+)
-    List<EntityType> eliteMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON,
-      EntityType.SPIDER,
-      EntityType.CREEPER,
-      EntityType.WITCH
-    );
-
-    WAVE_MOB_TYPES.put(1, basicMobs);
-    WAVE_MOB_TYPES.put(5, mediumMobs);
-    WAVE_MOB_TYPES.put(10, eliteMobs);
-  }
 
   public MobSpawnManager(
     Bastion plugin,
@@ -94,49 +58,6 @@ public class MobSpawnManager implements Listener {
 
   public void setWaveManager(WaveManager waveManager) {
     this.waveManager = waveManager;
-  }
-
-  public void startSpawning() {
-    if (spawnTask != null) {
-      spawnTask.cancel();
-    }
-
-    // Task to spawn mobs
-    spawnTask =
-      new BukkitRunnable() {
-        @Override
-        public void run() {
-          if (!waveManager.isWaveActive()) {
-            this.cancel();
-            return;
-          }
-
-          // Check and remove expired mobs
-          Iterator<Map.Entry<LivingEntity, Long>> it = spawnTimes
-            .entrySet()
-            .iterator();
-          while (it.hasNext()) {
-            Map.Entry<LivingEntity, Long> entry = it.next();
-            LivingEntity mob = entry.getKey();
-            long spawnTime = entry.getValue();
-
-            if (
-              !mob.isValid() ||
-              (System.currentTimeMillis() - spawnTime) >= (MOB_LIFETIME * 50)
-            ) { // Convert ticks to ms
-              mob.remove();
-              it.remove();
-              currentMobCount--;
-            }
-          }
-
-          // Try to spawn new mob if below wave limit
-          if (currentMobCount < waveManager.getRemainingMobs()) {
-            trySpawnMob();
-          }
-        }
-      }
-        .runTaskTimer(plugin, 0L, SPAWN_INTERVAL);
   }
 
   public void stopSpawning() {
@@ -170,73 +91,6 @@ public class MobSpawnManager implements Listener {
     return (int) spawnTimes.keySet().stream()
       .filter(LivingEntity::isValid)
       .count();
-  }
-
-  private void trySpawnMob() {
-    if (waveManager.getRemainingMobs() <= 0) {
-      return;
-    }
-
-    Location spawnLoc = findSpawnLocationWithRetry();
-    if (spawnLoc == null) {
-      return;
-    }
-
-    EntityType mobType = selectMobType();
-    LivingEntity mob = (LivingEntity) spawnLoc
-      .getWorld()
-      .spawnEntity(spawnLoc, mobType);
-
-    // Log spawn location for debugging
-    plugin.getLogger().info(String.format("Spawned %s at coordinates: X=%.2f, Y=%.2f, Z=%.2f", 
-        mobType.name(), spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()));
-
-    // Equip mobs to prevent them from burning in daylight
-    if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
-        if (mob.getEquipment() != null) {
-            mob.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
-            mob.getEquipment().setHelmetDropChance(0.0f); // Prevent helmet drop
-        }
-    }
-
-    // Apply wave-based attributes
-    applyMobAttributes(mob);
-
-    // Determine if mob is elite or boss
-    int currentWave = waveManager.getCurrentWave();
-    boolean isElite = currentWave >= 5 && random.nextDouble() < 0.2;
-    boolean isBoss = currentWave % 10 == 0;
-
-    // Set custom name to indicate wave number and type
-    String prefix = isBoss
-      ? "§4[BOSS]"
-      : (isElite ? "§5[ELITE]" : "§c[Wave " + currentWave + "]");
-    mob.setCustomName(prefix + " " + formatMobName(mob.getType().name()));
-    mob.setCustomNameVisible(true);
-
-    // Track spawn time
-    spawnTimes.put(mob, System.currentTimeMillis());
-    currentMobCount++;
-  }
-
-  private EntityType selectMobType() {
-    int currentWave = waveManager.getCurrentWave();
-    List<EntityType> availableMobs = null;
-
-    // Find the highest wave tier that's less than or equal to current wave
-    for (int waveTier : new TreeSet<>(WAVE_MOB_TYPES.keySet())
-      .descendingSet()) {
-      if (currentWave >= waveTier) {
-        availableMobs = WAVE_MOB_TYPES.get(waveTier);
-        break;
-      }
-    }
-
-    if (availableMobs == null || availableMobs.isEmpty()) {
-      return EntityType.ZOMBIE; // Fallback
-    }
-
-    return availableMobs.get(random.nextInt(availableMobs.size()));
   }
 
   private Location findSafeSpawnLocation() {
@@ -318,11 +172,6 @@ public class MobSpawnManager implements Listener {
   private void applyMobAttributes(LivingEntity mob) {
     // All stat scaling removed - mobs keep their base attributes
     // This method kept as stub for future use (equipment, effects, etc.)
-  }
-
-  private long calculateSpawnDelay() {
-    // Start at 100 ticks (5 seconds), decrease with wave number but never below 20 ticks
-    return Math.max(20L, 100L - (waveManager.getCurrentWave() * 5L));
   }
 
   private String formatMobName(String name) {
