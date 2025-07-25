@@ -205,6 +205,8 @@ public class MobSpawnManager implements Listener {
   ) {
     List<EntityType> initialMobs = new ArrayList<>();
     
+    plugin.getLogger().info("DEBUG: availableMobTypes size = " + availableMobTypes.size());
+    
     while (initialMobs.size() < mobCount) {
       // Pick random mob
       EntityType candidateMob = availableMobTypes.get(random.nextInt(availableMobTypes.size()));
@@ -285,8 +287,8 @@ public class MobSpawnManager implements Listener {
    */
   private List<EntityType> generateMobListForWave(int waveNumber, int mobCount) {
     ConfigurationSection difficultyConfig = plugin.getConfig().getConfigurationSection("mob_difficulty");
-    if (difficultyConfig == null) {
-        plugin.getLogger().severe("mob_difficulty section is missing from config.yml!");
+    if (difficultyConfig == null || difficultyConfig.getKeys(false).isEmpty()) {
+        plugin.getLogger().severe("mob_difficulty section is empty or missing from config.yml!");
         return Collections.nCopies(mobCount, EntityType.ZOMBIE);
     }
 
