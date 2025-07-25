@@ -1,15 +1,12 @@
 package city.emerald.bastion.wave;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,7 +21,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import city.emerald.bastion.BarrierManager;
@@ -44,38 +40,6 @@ public class MobSpawnManager implements Listener {
   private Map<LivingEntity, Long> spawnTimes;
   private int currentMobCount;
   private Location previousSpawnLocation = null;
-  private static final long MOB_LIFETIME = 5 * 60 * 20; // 5 minutes in ticks
-  private static final int SPAWN_INTERVAL = 40; // 2 seconds between spawns
-  private static final Map<Integer, List<EntityType>> WAVE_MOB_TYPES = new HashMap<>();
-
-  static {
-    // Basic waves (1-4)
-    List<EntityType> basicMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON
-    );
-
-    // Medium waves (5-9)
-    List<EntityType> mediumMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON,
-      EntityType.SPIDER,
-      EntityType.CREEPER
-    );
-
-    // Elite waves (10+)
-    List<EntityType> eliteMobs = Arrays.asList(
-      EntityType.ZOMBIE,
-      EntityType.SKELETON,
-      EntityType.SPIDER,
-      EntityType.CREEPER,
-      EntityType.WITCH
-    );
-
-    WAVE_MOB_TYPES.put(1, basicMobs);
-    WAVE_MOB_TYPES.put(5, mediumMobs);
-    WAVE_MOB_TYPES.put(10, eliteMobs);
-  }
 
   public MobSpawnManager(
     Bastion plugin,
@@ -94,49 +58,6 @@ public class MobSpawnManager implements Listener {
 
   public void setWaveManager(WaveManager waveManager) {
     this.waveManager = waveManager;
-  }
-
-  public void startSpawning() {
-    if (spawnTask != null) {
-      spawnTask.cancel();
-    }
-
-    // Task to spawn mobs
-    spawnTask =
-      new BukkitRunnable() {
-        @Override
-        public void run() {
-          if (!waveManager.isWaveActive()) {
-            this.cancel();
-            return;
-          }
-
-          // Check and remove expired mobs
-          Iterator<Map.Entry<LivingEntity, Long>> it = spawnTimes
-            .entrySet()
-            .iterator();
-          while (it.hasNext()) {
-            Map.Entry<LivingEntity, Long> entry = it.next();
-            LivingEntity mob = entry.getKey();
-            long spawnTime = entry.getValue();
-
-            if (
-              !mob.isValid() ||
-              (System.currentTimeMillis() - spawnTime) >= (MOB_LIFETIME * 50)
-            ) { // Convert ticks to ms
-              mob.remove();
-              it.remove();
-              currentMobCount--;
-            }
-          }
-
-          // Try to spawn new mob if below wave limit
-          if (currentMobCount < waveManager.getRemainingMobs()) {
-            trySpawnMob();
-          }
-        }
-      }
-        .runTaskTimer(plugin, 0L, SPAWN_INTERVAL);
   }
 
   public void stopSpawning() {
@@ -170,73 +91,6 @@ public class MobSpawnManager implements Listener {
     return (int) spawnTimes.keySet().stream()
       .filter(LivingEntity::isValid)
       .count();
-  }
-
-  private void trySpawnMob() {
-    if (waveManager.getRemainingMobs() <= 0) {
-      return;
-    }
-
-    Location spawnLoc = findSpawnLocationWithRetry();
-    if (spawnLoc == null) {
-      return;
-    }
-
-    EntityType mobType = selectMobType();
-    LivingEntity mob = (LivingEntity) spawnLoc
-      .getWorld()
-      .spawnEntity(spawnLoc, mobType);
-
-    // Log spawn location for debugging
-    plugin.getLogger().info(String.format("Spawned %s at coordinates: X=%.2f, Y=%.2f, Z=%.2f", 
-        mobType.name(), spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()));
-
-    // Equip mobs to prevent them from burning in daylight
-    if (mob instanceof org.bukkit.entity.Zombie || mob instanceof org.bukkit.entity.Skeleton) {
-        if (mob.getEquipment() != null) {
-            mob.getEquipment().setHelmet(new ItemStack(Material.LEATHER_HELMET));
-            mob.getEquipment().setHelmetDropChance(0.0f); // Prevent helmet drop
-        }
-    }
-
-    // Apply wave-based attributes
-    applyMobAttributes(mob);
-
-    // Determine if mob is elite or boss
-    int currentWave = waveManager.getCurrentWave();
-    boolean isElite = currentWave >= 5 && random.nextDouble() < 0.2;
-    boolean isBoss = currentWave % 10 == 0;
-
-    // Set custom name to indicate wave number and type
-    String prefix = isBoss
-      ? "§4[BOSS]"
-      : (isElite ? "§5[ELITE]" : "§c[Wave " + currentWave + "]");
-    mob.setCustomName(prefix + " " + formatMobName(mob.getType().name()));
-    mob.setCustomNameVisible(true);
-
-    // Track spawn time
-    spawnTimes.put(mob, System.currentTimeMillis());
-    currentMobCount++;
-  }
-
-  private EntityType selectMobType() {
-    int currentWave = waveManager.getCurrentWave();
-    List<EntityType> availableMobs = null;
-
-    // Find the highest wave tier that's less than or equal to current wave
-    for (int waveTier : new TreeSet<>(WAVE_MOB_TYPES.keySet())
-      .descendingSet()) {
-      if (currentWave >= waveTier) {
-        availableMobs = WAVE_MOB_TYPES.get(waveTier);
-        break;
-      }
-    }
-
-    if (availableMobs == null || availableMobs.isEmpty()) {
-      return EntityType.ZOMBIE; // Fallback
-    }
-
-    return availableMobs.get(random.nextInt(availableMobs.size()));
   }
 
   private Location findSafeSpawnLocation() {
@@ -320,13 +174,54 @@ public class MobSpawnManager implements Listener {
     // This method kept as stub for future use (equipment, effects, etc.)
   }
 
-  private long calculateSpawnDelay() {
-    // Start at 100 ticks (5 seconds), decrease with wave number but never below 20 ticks
-    return Math.max(20L, 100L - (waveManager.getCurrentWave() * 5L));
-  }
-
   private String formatMobName(String name) {
     return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+  }
+
+  /**
+   * Calculate probability of selecting a mob with given difficulty
+   * @param targetDifficulty The desired difficulty level
+   * @param candidateDifficulty The difficulty of the candidate mob
+   * @return Probability [0.0, 1.0] of selecting this mob
+   */
+  private double calculateSelectionProbability(double targetDifficulty, double candidateDifficulty) {
+    double distance = Math.abs(candidateDifficulty - targetDifficulty);
+    return Math.exp(-distance * 2.0);
+  }
+
+  /**
+   * Generate initial mob distribution using probabilistic sampling
+   * @param targetDifficulty The desired average difficulty
+   * @param mobCount Number of mobs to generate
+   * @param availableMobTypes List of available mob types
+   * @param mobDifficultyMap Difficulty values for each mob type
+   * @return Initial mob list
+   */
+  private List<EntityType> generateInitialDistribution(
+      double targetDifficulty,
+      int mobCount,
+      List<EntityType> availableMobTypes,
+      Map<EntityType, Double> mobDifficultyMap
+  ) {
+    List<EntityType> initialMobs = new ArrayList<>();
+    
+    plugin.getLogger().info("DEBUG: availableMobTypes size = " + availableMobTypes.size());
+    
+    while (initialMobs.size() < mobCount) {
+      // Pick random mob
+      EntityType candidateMob = availableMobTypes.get(random.nextInt(availableMobTypes.size()));
+      
+      // Calculate acceptance probability based on difficulty
+      double mobDifficulty = mobDifficultyMap.getOrDefault(candidateMob, 1.0);
+      double acceptanceProbability = calculateSelectionProbability(targetDifficulty, mobDifficulty);
+      
+      // Accept if random number is less than or equal to probability
+      if (random.nextDouble() <= acceptanceProbability) {
+        initialMobs.add(candidateMob);
+      }
+    }
+    
+    return initialMobs;
   }
 
   /**
@@ -392,8 +287,8 @@ public class MobSpawnManager implements Listener {
    */
   private List<EntityType> generateMobListForWave(int waveNumber, int mobCount) {
     ConfigurationSection difficultyConfig = plugin.getConfig().getConfigurationSection("mob_difficulty");
-    if (difficultyConfig == null) {
-        plugin.getLogger().severe("mob_difficulty section is missing from config.yml!");
+    if (difficultyConfig == null || difficultyConfig.getKeys(false).isEmpty()) {
+        plugin.getLogger().severe("mob_difficulty section is empty or missing from config.yml!");
         return Collections.nCopies(mobCount, EntityType.ZOMBIE);
     }
 
@@ -415,10 +310,19 @@ public class MobSpawnManager implements Listener {
 
     double targetAverageDifficulty = startingDifficulty * Math.pow(1 + difficultyIncrease, waveNumber - 1);
 
-    List<EntityType> mobSet = new ArrayList<>(Collections.nCopies(mobCount, EntityType.ZOMBIE));
-    double currentAverageDifficulty = 1.0;
+    // Generate initial distribution using probabilistic sampling
+    List<EntityType> mobSet = generateInitialDistribution(targetAverageDifficulty, mobCount, availableMobTypes, mobDifficultyMap);
+    
+    // Calculate initial average difficulty
+    double currentAverageDifficulty = mobSet.stream()
+        .mapToDouble(mob -> mobDifficultyMap.getOrDefault(mob, 1.0))
+        .average()
+        .orElse(1.0);
 
+    // Simulated annealing optimization
     int failedSwaps = 0;
+    double currentDistance = Math.abs(currentAverageDifficulty - targetAverageDifficulty);
+    
     while (failedSwaps < maxFailedSwaps) {
         if (availableMobTypes.isEmpty()) break;
 
@@ -430,18 +334,19 @@ public class MobSpawnManager implements Listener {
 
         double newTotalDifficulty = (currentAverageDifficulty * mobCount) - difficultyRemoved + difficultyAdded;
         double newAverageDifficulty = newTotalDifficulty / mobCount;
+        double newDistance = Math.abs(newAverageDifficulty - targetAverageDifficulty);
 
-        double currentDiff = Math.abs(targetAverageDifficulty - currentAverageDifficulty);
-        double newDiff = Math.abs(targetAverageDifficulty - newAverageDifficulty);
-
-        if (newDiff < currentDiff && newAverageDifficulty <= targetAverageDifficulty) {
+        // Accept if new distance is not worse than current distance
+        if (newDistance <= currentDistance) {
             mobSet.set(indexToSwap, candidateType);
             currentAverageDifficulty = newAverageDifficulty;
+            currentDistance = newDistance;
             failedSwaps = 0; // Reset on successful swap
         } else {
             failedSwaps++;
         }
     }
+    
     plugin.getLogger().info("Generated mob set for wave " + waveNumber + " with average difficulty: " + currentAverageDifficulty);
     return mobSet;
   }
