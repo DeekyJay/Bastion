@@ -1,9 +1,13 @@
 package city.emerald.bastion.economy;
 
-import city.emerald.bastion.Bastion;
-import city.emerald.bastion.VillageManager;
-import city.emerald.bastion.wave.WaveManager;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Villager;
@@ -12,6 +16,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MerchantRecipe;
+
+import city.emerald.bastion.Bastion;
+import city.emerald.bastion.VillageManager;
+import city.emerald.bastion.wave.WaveManager;
 
 public class TradeManager implements Listener {
 
@@ -163,6 +171,8 @@ public class TradeManager implements Listener {
 
   @EventHandler
   public void onTradeInventoryOpen(InventoryOpenEvent event) {
+    return; // No custom trades if disabled
+    /* 
     if (!(event.getInventory().getHolder() instanceof Villager)) {
       return;
     }
@@ -173,6 +183,7 @@ public class TradeManager implements Listener {
     }
 
     refreshVillagerTrades(villager);
+    /* */
   }
 
   /**
