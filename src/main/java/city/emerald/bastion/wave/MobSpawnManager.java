@@ -179,6 +179,61 @@ public class MobSpawnManager implements Listener {
   }
 
   /**
+   * Calculate probability of selecting a mob with given difficulty
+   * @param targetDifficulty The desired difficulty level
+   * @param candidateDifficulty The difficulty of the candidate mob
+   * @return Probability [0.0, 1.0] of selecting this mob
+   */
+  private double calculateSelectionProbability(double targetDifficulty, double candidateDifficulty) {
+    double distance = Math.abs(candidateDifficulty - targetDifficulty);
+    return Math.exp(-distance * 2.0);
+  }
+
+  /**
+   * Generate initial mob distribution using probabilistic sampling
+   * @param targetDifficulty The desired average difficulty
+   * @param mobCount Number of mobs to generate
+   * @param availableMobTypes List of available mob types
+   * @param mobDifficultyMap Difficulty values for each mob type
+   * @return Initial mob list
+   */
+  private List<EntityType> generateInitialDistribution(
+      double targetDifficulty,
+      int mobCount,
+      List<EntityType> availableMobTypes,
+      Map<EntityType, Double> mobDifficultyMap
+  ) {
+    List<EntityType> initialMobs = new ArrayList<>();
+    
+    for (int i = 0; i < mobCount; i++) {
+      // Calculate probabilities for all mob types
+      double[] probabilities = new double[availableMobTypes.size()];
+      double totalProbability = 0.0;
+      
+      for (int j = 0; j < availableMobTypes.size(); j++) {
+        EntityType mobType = availableMobTypes.get(j);
+        double mobDifficulty = mobDifficultyMap.getOrDefault(mobType, 1.0);
+        probabilities[j] = calculateSelectionProbability(targetDifficulty, mobDifficulty);
+        totalProbability += probabilities[j];
+      }
+      
+      // Weighted random selection
+      double randomValue = random.nextDouble() * totalProbability;
+      double cumulativeProbability = 0.0;
+      
+      for (int j = 0; j < availableMobTypes.size(); j++) {
+        cumulativeProbability += probabilities[j];
+        if (randomValue <= cumulativeProbability) {
+          initialMobs.add(availableMobTypes.get(j));
+          break;
+        }
+      }
+    }
+    
+    return initialMobs;
+  }
+
+  /**
    * Generates and spawns all mobs for a given wave at once.
    * @param waveNumber The current wave number.
    * @param mobCount The total number of mobs to spawn for the wave.
@@ -264,10 +319,19 @@ public class MobSpawnManager implements Listener {
 
     double targetAverageDifficulty = startingDifficulty * Math.pow(1 + difficultyIncrease, waveNumber - 1);
 
-    List<EntityType> mobSet = new ArrayList<>(Collections.nCopies(mobCount, EntityType.ZOMBIE));
-    double currentAverageDifficulty = 1.0;
+    // Generate initial distribution using probabilistic sampling
+    List<EntityType> mobSet = generateInitialDistribution(targetAverageDifficulty, mobCount, availableMobTypes, mobDifficultyMap);
+    
+    // Calculate initial average difficulty
+    double currentAverageDifficulty = mobSet.stream()
+        .mapToDouble(mob -> mobDifficultyMap.getOrDefault(mob, 1.0))
+        .average()
+        .orElse(1.0);
 
+    // Simulated annealing optimization
     int failedSwaps = 0;
+    double currentDistance = Math.abs(currentAverageDifficulty - targetAverageDifficulty);
+    
     while (failedSwaps < maxFailedSwaps) {
         if (availableMobTypes.isEmpty()) break;
 
@@ -279,18 +343,19 @@ public class MobSpawnManager implements Listener {
 
         double newTotalDifficulty = (currentAverageDifficulty * mobCount) - difficultyRemoved + difficultyAdded;
         double newAverageDifficulty = newTotalDifficulty / mobCount;
+        double newDistance = Math.abs(newAverageDifficulty - targetAverageDifficulty);
 
-        double currentDiff = Math.abs(targetAverageDifficulty - currentAverageDifficulty);
-        double newDiff = Math.abs(targetAverageDifficulty - newAverageDifficulty);
-
-        if (newDiff < currentDiff && newAverageDifficulty <= targetAverageDifficulty) {
+        // Accept if new distance is not worse than current distance
+        if (newDistance <= currentDistance) {
             mobSet.set(indexToSwap, candidateType);
             currentAverageDifficulty = newAverageDifficulty;
+            currentDistance = newDistance;
             failedSwaps = 0; // Reset on successful swap
         } else {
             failedSwaps++;
         }
     }
+    
     plugin.getLogger().info("Generated mob set for wave " + waveNumber + " with average difficulty: " + currentAverageDifficulty);
     return mobSet;
   }
