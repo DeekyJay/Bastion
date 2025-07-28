@@ -1,6 +1,11 @@
 # Loot
 Progression is built around resource acquisition, not direct gear rewards. Players earn and craft their way up through systems like brewing, enchanting, villager trading, and smelting, with mob difficulty and wave structure gating access to those resources.
 
+Early resource drops help build basic fortifications and craft basic gear. As resources like iron accumulate, gear and tools improve. Early farming is important for later resources. Players must think early about breeding villagers, so carrots, bread, and wool are important too. Villagers must be protected, but also they are a source of emeralds and trading for better gear and tools.
+
+Later, players will have enchanting tables and will be brewing potions. XP will become a resource. They may be creating iron golems using iron and pumpkins, brewing splash potions for offense or defense.
+
+
 ## Enchanting
 ``` mermaid
 graph TD
@@ -258,3 +263,14 @@ graph LR
   - smelting
   - disenchanting
   - potion
+
+## Resource Drop Progression Stages
+
+| Resources | Player Capabilities/Activities Enabled |
+|-----------|---------------------------------------|
+| **Stage 1: Basic Survival & Villager Care**<br>• Food: wheat, potatoes, carrots, beetroots, melons, raw meats, raw fish<br>• Materials: logs, sticks, string, feathers, flint, wool<br>• Trading: rotten flesh, coal<br>• XP: basic mob kill experience | • Basic survival (food, shelter)<br>• Villager breeding programs<br>• Simple tool/weapon crafting<br>• Early villager trading (cleric, fisherman)<br>• Basic building and fortifications |
+| **Stage 2: Infrastructure & Early Trading**<br>• Construction: more logs, sand<br>• Trading: paper (sugar cane), books, coal, iron ingots<br>• Farming: sugar cane, pumpkins, seeds<br>• Crafting: leather, more string/feathers | • Glass bottle production<br>• Expanded villager trading networks<br>• Advanced farming systems<br>• Book and paper production<br>• Improved tools and basic armor |
+| **Stage 3: Iron Age & Basic Enchanting**<br>• Metals: iron ingots, gold ingots, gold nuggets<br>• Enchanting prep: diamonds, leather, paper<br>• Trading: emeralds<br>• XP: experience bottles<br>• Brewing: sand, spider eyes | • Iron tool and armor crafting<br>• Iron golem creation<br>• Enchanting table construction<br>• Advanced villager trading<br>• Glass bottle mass production<br>• Basic potion ingredient gathering |
+| **Stage 4: Advanced Magic Systems**<br>• Enchanting: lapis lazuli, more diamonds, obsidian<br>• Brewing: blaze rods, blaze powder, nether wart, sugar<br>• Ingredients: slimeballs, spider eyes, brown mushrooms<br>• Trading: more emeralds, gold for crafting | • Full enchanting setup (table + bookshelves)<br>• Brewing stand operation<br>• Basic potion brewing<br>• Advanced enchanted gear<br>• Multiple iron golem defenses<br>• Golden food crafting |
+| **Stage 5: Master Brewing & Advanced Resources**<br>• Advanced brewing: ghast tears, magma cream, pufferfish, phantom membranes<br>• Crafting: melon slices, more gold nuggets<br>• XP farming: nether quartz ore, clay, cactus, moss, skulk<br>• High-value trading materials | • Complex potion brewing (healing, strength, fire resistance)<br>• Advanced enchanting with abundant lapis<br>• XP farming operations<br>• Specialized golden foods<br>• Master-level villager trading<br>• Complete defensive systems |
+| **Stage 6: Endgame Mastery**<br>• Master resources: ancient debris, dragon breath<br>• Abundant materials: high quantities of all previous resources<br>• Ultimate XP sources<br>• Complete system materials | • Lingering potion creation<br>• Ultimate XP generation<br>• Self-sustaining enchanting operations<br>• Complete mastery of all systems<br>• Indefinite survival capability<br>• Peak defensive and offensive capabilities |
