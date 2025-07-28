@@ -268,6 +268,19 @@ public class MobSpawnManager implements Listener {
       mob.setCustomName(prefix + " " + formatMobName(mob.getType().name()));
       mob.setCustomNameVisible(true);
 
+      // Apply health modifications for elite and boss mobs
+      if (isBoss) {
+        // Double health for boss mobs
+        double baseHealth = mob.getMaxHealth();
+        mob.setMaxHealth(baseHealth * 2.0);
+        mob.setHealth(baseHealth * 2.0);
+      } else if (isElite) {
+        // 50% more health for elite mobs
+        double baseHealth = mob.getMaxHealth();
+        mob.setMaxHealth(baseHealth * 1.5);
+        mob.setHealth(baseHealth * 1.5);
+      }
+
       // Track spawn time
       spawnTimes.put(mob, System.currentTimeMillis());
       currentMobCount++;

@@ -70,6 +70,16 @@ public class LootManager {
     int currentWave = gameStateManager.getCurrentWaveNumber();
     double scalingBase = plugin.getDoubleSafe("loot_table_settings.wave_scaling_base", 0.05);
     double multiplier = Math.pow(1.0 + scalingBase, currentWave);
+
+    // Apply elite/boss multipliers
+    if (entity.getCustomName() != null) {
+      if (entity.getCustomName().contains("§4[BOSS]")) {
+        multiplier *= 2.0; // Double loot for boss
+      } else if (entity.getCustomName().contains("§5[ELITE]")) {
+        multiplier *= 1.5; // 50% more loot for elite
+      }
+    }
+
     boolean includeBonusItems = true; // Allow bonus loot every wave instead of only every 5th wave
 
     List<ItemStack> customLoot = generateLoot(entityType, multiplier, includeBonusItems);
