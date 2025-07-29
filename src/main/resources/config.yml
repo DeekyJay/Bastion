@@ -123,7 +123,7 @@ common_loot:
 
 bonus_loot:
   # Stage 1: Basic Survival Bonus
-  zombie: "bread,cooked_beef,golden_carrot,emerald,villager_spawn_egg"
+  zombie: "bread,cooked_beef,golden_carrot,emerald"
   slime: "honey_bottle,cooked_cod,golden_apple,emerald"
   spider: "cobweb,fermented_spider_eye,golden_apple,emerald"
   skeleton: "bone_meal,experience_bottle,book,emerald"
@@ -132,23 +132,23 @@ bonus_loot:
   husk: "iron_ingot,leather_helmet,golden_apple,emerald"
   creeper: "tnt,gunpowder,iron_ingot,golden_apple,emerald"
   pillager: "crossbow,iron_ingot,white_banner,emerald"
-  magma_cube: "magma_block,iron_ingot,fire_resistance_potion,emerald"
+  magma_cube: "magma_block,iron_ingot,emerald"
   
   # Stage 3: Iron Age Bonus
   stray: "ice,packed_ice,arrow,emerald,book"
-  cave_spider: "potion,spider_eye,experience_bottle,emerald,book"
-  zombified_piglin: "gold_ingot,golden_sword,potion,emerald,book"
+  cave_spider: "spider_eye,experience_bottle,emerald,book"
+  zombified_piglin: "gold_ingot,golden_sword,emerald,book"
   
   # Stage 4: Advanced Magic Bonus
-  phantom: "elytra,phantom_membrane,potion,emerald,book"
-  zoglin: "leather,cooked_porkchop,potion,emerald,book"
-  vindicator: "iron_axe,emerald_block,emerald,book"
+  phantom: "elytra,phantom_membrane,emerald,book"
+  zoglin: "leather,cooked_porkchop,emerald,book"
+  vindicator:  "emerald_block,emerald,book"
   
   # Stage 5: Master Brewing Bonus
-  blaze: "brewing_stand,blaze_rod,potion,splash_potion,book"
+  blaze: "brewing_stand,blaze_rod,book"
   enderman: "ender_chest,shulker_box,ender_pearl,book"
-  witch: "cauldron,brewing_stand,potion,splash_potion,book"
-  wither_skeleton: "wither_skeleton_skull,stone_sword,potion,book"
+  witch: "cauldron,brewing_stand,book"
+  wither_skeleton: "wither_skeleton_skull,totem_of_undying,book"
   
   # Stage 6: Endgame Bonus
   ravager: "saddle,lead,emerald_block,book"
