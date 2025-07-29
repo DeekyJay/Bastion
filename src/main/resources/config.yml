@@ -124,20 +124,32 @@ bonus_loot:
 # The score is a scalar based on health, damage, speed, and special abilities.
 # Zombie is the baseline at 1.0.
 mob_difficulty:
-  zombie: 1.0
-  skeleton: 1.2
-  spider: 1.3
-  creeper: 1.8
-  enderman: 2.2
-  witch: 2.5
-  pillager: 1.3
-  stray: 1.4
-  cave_spider: 1.5
-  phantom: 1.6
-  blaze: 1.9
-  vindicator: 2.0
-  evoker: 3.5
-  vex: 3.7
-  ravager: 4.0
-
+  # stage 1 [1.0, 1.5)
+  zombie: 1.0  # Slow, melee only, completely predictable movement
+  slime: 1.1  # Easy to avoid, predictable bouncing, splits into weaker versions
+  spider: 1.2  # Fast but weak damage, neutral in daylight, easy to hit
+  skeleton: 1.3  # Ranged but slow projectiles, easily blocked by shields/cover
+  # stage 2 [1.5, 2.2)
+  husk: 1.5  # Similar to zombie but can inflict hunger
+  creeper: 1.6  # Explosive threat requiring careful positioning and timing
+  pillager: 1.7  # Similar to skeleton with crossbow, predictable reload time
+  magma_cube: 1.8  # Like slime but with fire damage and slightly more health
+  # stage 3 [2.2, 3.4)
+  stray: 2.2  # Skeleton with slowness arrows, but arrows are still blockable
+  cave_spider: 2.4  # Small, fast, poison, but low health and damage
+  zombified_piglin: 2.6  # Neutral unless provoked, then calls reinforcements
+  # stage 4 [3.4, 5.0)
+  phantom: 3.4  # Flying with dive attacks, but very predictable attack patterns
+  zoglin: 3.7  # High damage and knockback, but slow and predictable
+  vindicator: 4.0  # Fast, high melee damage, aggressive pursuit
+  # stage 5 [5.0, 7.6)
+  blaze: 5.0  # Flying, fireball barrage, fire immunity, harder to reach/hit
+  enderman: 5.5  # High damage, teleportation makes it unpredictable
+  witch: 6.0  # Self-healing, splash potions, poison, multiple status effects
+  wither_skeleton: 6.5  # High damage, wither effect, tall reach, fire immunity
+  # stage 6 [7.6, 12.0)
+  ravager: 7.6  # Massive health, destroys blocks, knockback, hard to escape from
+  evoker: 8.0  # Summons vex, fang attacks, multiple dangerous abilities
+  vex: 10.0  # Small hitbox, phases through blocks, flying, very hard to hit
+  ghast: 11.0  # Long-range explosive fireballs, flying, high health, destroys terrain
 
