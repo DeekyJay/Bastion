@@ -92,52 +92,100 @@ loot_table_settings:
 # special handling to randomly select the enchantment/potion type.
 
 common_loot:
-  zombie: "leather,iron_nugget,gold_nugget,iron_ingot,bread,carrot,potato" # 1.0
-  skeleton: "leather,oak_log,coal,bone,arrow,iron_ingot,stone,cobblestone" # 1.2
-  spider: "sugar_cane,cobblestone,string,cobweb,stone,coal,iron_nugget" # 1.3
-  creeper: "flint,gunpowder,iron_ingot,gold_ingot,coal" # 1.8
-  enderman: "obsidian,nether_wart,ender_pearl,iron_ingot,diamond" # 2.2
-  witch: "lapis_lazuli,blaze_rod,redstone,glowstone_dust,iron_ingot,gold_ingot" # 2.5
-  pillager: "crossbow,iron_ingot,oak_planks,feather" # 1.3
-  stray: "tipped_arrow,emerald" # 1.4
-  cave_spider: "spider_eye,cobweb" # 1.5
-  phantom: "phantom_membrane,feather,diamond_sword,iron_chestplate" # 1.6
-  blaze: "blaze_powder,blaze_rod,fire_charge,diamond" # 1.9
-  vindicator: "iron_ingot,emerald" # 2.0
-  evoker: "totem_of_undying,iron_ingot,emerald" # 3.5
-  vex: "totem_of_undying,iron_ingot" # 3.7
-  ravager: "totem_of_undying,emerald,diamond,iron_ingot" # 4.0
+  # Stage 1: Basic Survival & Villager Care
+  zombie: "wheat,potatoes,carrots,beetroots,raw_beef,raw_pork,oak_log,sticks,string,feathers,flint,wool,rotten_flesh,coal"
+  slime: "wheat,potatoes,carrots,raw_fish,oak_log,sticks,string,feathers,wool,coal"
+  spider: "wheat,beetroots,melons,raw_chicken,oak_log,sticks,string,feathers,flint,rotten_flesh,coal"
+  skeleton: "raw_beef,raw_pork,raw_fish,oak_log,sticks,string,feathers,flint,wool,coal"
+  # Stage 2: Infrastructure & Early Trading
+  husk: "oak_log,sand,sugar_cane,books,coal,iron_ingot,pumpkin,leather,string,feathers"
+  creeper: "oak_log,sand,sugar_cane,paper,coal,iron_ingot,pumpkin,leather,gunpowder"
+  pillager: "sand,sugar_cane,paper,books,coal,iron_ingot,leather,string,feathers"
+  magma_cube: "oak_log,sand,sugar_cane,books,iron_ingot,pumpkin,leather,magma_cream"
+  # Stage 3: Iron Age & Basic Enchanting
+  stray: "iron_ingot,gold_ingot,gold_nugget,diamond,leather,paper,emerald,experience_bottle,sand,spider_eye"
+  cave_spider: "iron_ingot,gold_ingot,gold_nugget,diamond,paper,emerald,experience_bottle,spider_eye"
+  zombified_piglin: "iron_ingot,gold_ingot,gold_nugget,diamond,leather,emerald,experience_bottle,sand"
+  # Stage 4: Advanced Magic Systems
+  phantom: "lapis_lazuli,diamond,obsidian,blaze_rod,blaze_powder,nether_wart,sugar,slimeball,spider_eye,brown_mushroom,emerald,gold_ingot"
+  zoglin: "lapis_lazuli,diamond,obsidian,blaze_rod,blaze_powder,nether_wart,slimeball,emerald,gold_ingot"
+  vindicator: "lapis_lazuli,diamond,obsidian,blaze_powder,nether_wart,sugar,spider_eye,brown_mushroom,emerald,gold_ingot"
+  # Stage 5: Master Brewing & Advanced Resources
+  blaze: "ghast_tear,magma_cream,pufferfish,phantom_membrane,melon_slice,gold_nugget,nether_quartz_ore,clay,cactus,moss_block,sculk"
+  enderman: "ghast_tear,magma_cream,phantom_membrane,melon_slice,gold_nugget,nether_quartz_ore,clay,moss_block,sculk,ender_pearl,obsidian"
+  witch: "ghast_tear,magma_cream,pufferfish,phantom_membrane,gold_nugget,clay,cactus,moss_block,sculk,lapis_lazuli,redstone,glowstone_dust"
+  wither_skeleton: "ghast_tear,magma_cream,pufferfish,phantom_membrane,nether_quartz_ore,clay,cactus,sculk,wither_skeleton_skull"
+  # Stage 6: Endgame Mastery
+  ravager: "ancient_debris,dragon_breath,ghast_tear,magma_cream,phantom_membrane,gold_nugget,nether_quartz_ore,clay,moss_block,sculk,diamond,emerald"
+  evoker: "ancient_debris,dragon_breath,ghast_tear,pufferfish,phantom_membrane,nether_quartz_ore,sculk,totem_of_undying,emerald"
+  vex: "ancient_debris,dragon_breath,phantom_membrane,nether_quartz_ore,clay,sculk,totem_of_undying"
+  ghast: "ancient_debris,dragon_breath,ghast_tear,magma_cream,pufferfish,phantom_membrane,gold_nugget,nether_quartz_ore,sculk,fire_charge"
 
 bonus_loot:
-  zombie: "gravel,egg,golden_apple,cooked_beef,emerald"
-  skeleton: "experience_bottle,bow,diamond,emerald"
-  spider: "villager_spawn_egg,iron_boots,cobweb,diamond,emerald"
-  stray: "tipped_arrow,emerald,book"
-  cave_spider: "experience_bottle,book"
-  creeper: "tnt,emerald"
-  blaze: "blaze_powder,blaze_rod,fire_charge,diamond"
-  phantom: "phantom_membrane,feather"
-  enderman: "totem_of_undying,diamond,ender_chest,shulker_box"
-  witch: "ghast_tear,brewing_stand,cauldron,diamond"
+  # Stage 1: Basic Survival Bonus
+  zombie: "bread,cooked_beef,golden_carrot,emerald"
+  slime: "honey_bottle,cooked_cod,golden_apple,emerald"
+  spider: "cobweb,fermented_spider_eye,golden_apple,emerald"
+  skeleton: "bone_meal,experience_bottle,book,emerald"
+  
+  # Stage 2: Infrastructure Bonus
+  husk: "iron_ingot,leather_helmet,golden_apple,emerald"
+  creeper: "tnt,gunpowder,iron_ingot,golden_apple,emerald"
+  pillager: "crossbow,iron_ingot,white_banner,emerald"
+  magma_cube: "magma_block,iron_ingot,emerald"
+  
+  # Stage 3: Iron Age Bonus
+  stray: "ice,packed_ice,arrow,emerald,book"
+  cave_spider: "spider_eye,experience_bottle,emerald,book"
+  zombified_piglin: "gold_ingot,golden_sword,emerald,book"
+  
+  # Stage 4: Advanced Magic Bonus
+  phantom: "elytra,phantom_membrane,emerald,book"
+  zoglin: "leather,cooked_porkchop,emerald,book"
+  vindicator:  "emerald_block,emerald,book"
+  
+  # Stage 5: Master Brewing Bonus
+  blaze: "brewing_stand,blaze_rod,book"
+  enderman: "ender_chest,shulker_box,ender_pearl,book"
+  witch: "cauldron,brewing_stand,book"
+  wither_skeleton: "wither_skeleton_skull,totem_of_undying,book"
+  
+  # Stage 6: Endgame Bonus
+  ravager: "saddle,lead,emerald_block,book"
+  evoker: "totem_of_undying,emerald_block,emerald,book"
+  vex: "totem_of_undying,phantom_membrane,emerald,book"
+  ghast: "ghast_tear,fire_charge,dragon_breath,book"
 
 # Defines the difficulty score for each mob type, used for calculating wave difficulty.
 # The score is a scalar based on health, damage, speed, and special abilities.
 # Zombie is the baseline at 1.0.
 mob_difficulty:
-  zombie: 1.0
-  skeleton: 1.2
-  spider: 1.3
-  creeper: 1.8
-  enderman: 2.2
-  witch: 2.5
-  pillager: 1.3
-  stray: 1.4
-  cave_spider: 1.5
-  phantom: 1.6
-  blaze: 1.9
-  vindicator: 2.0
-  evoker: 3.5
-  vex: 3.7
-  ravager: 4.0
-
+  # stage 1 [1.0, 1.5)
+  zombie: 1.0  # Slow, melee only, completely predictable movement
+  slime: 1.1  # Easy to avoid, predictable bouncing, splits into weaker versions
+  spider: 1.2  # Fast but weak damage, neutral in daylight, easy to hit
+  skeleton: 1.3  # Ranged but slow projectiles, easily blocked by shields/cover
+  # stage 2 [1.5, 2.2)
+  husk: 1.5  # Similar to zombie but can inflict hunger
+  creeper: 1.6  # Explosive threat requiring careful positioning and timing
+  pillager: 1.7  # Similar to skeleton with crossbow, predictable reload time
+  magma_cube: 1.8  # Like slime but with fire damage and slightly more health
+  # stage 3 [2.2, 3.4)
+  stray: 2.2  # Skeleton with slowness arrows, but arrows are still blockable
+  cave_spider: 2.4  # Small, fast, poison, but low health and damage
+  zombified_piglin: 2.6  # Neutral unless provoked, then calls reinforcements
+  # stage 4 [3.4, 5.0)
+  phantom: 3.4  # Flying with dive attacks, but very predictable attack patterns
+  zoglin: 3.7  # High damage and knockback, but slow and predictable
+  vindicator: 4.0  # Fast, high melee damage, aggressive pursuit
+  # stage 5 [5.0, 7.6)
+  blaze: 5.0  # Flying, fireball barrage, fire immunity, harder to reach/hit
+  enderman: 5.5  # High damage, teleportation makes it unpredictable
+  witch: 6.0  # Self-healing, splash potions, poison, multiple status effects
+  wither_skeleton: 6.5  # High damage, wither effect, tall reach, fire immunity
+  # stage 6 [7.6, 12.0)
+  ravager: 7.6  # Massive health, destroys blocks, knockback, hard to escape from
+  evoker: 8.0  # Summons vex, fang attacks, multiple dangerous abilities
+  vex: 10.0  # Small hitbox, phases through blocks, flying, very hard to hit
+  ghast: 11.0  # Long-range explosive fireballs, flying, high health, destroys terrain
 
