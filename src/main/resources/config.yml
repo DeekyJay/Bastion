@@ -97,29 +97,24 @@ common_loot:
   slime: "wheat,potatoes,carrots,raw_fish,oak_log,sticks,string,feathers,wool,coal"
   spider: "wheat,beetroots,melons,raw_chicken,oak_log,sticks,string,feathers,flint,rotten_flesh,coal"
   skeleton: "raw_beef,raw_pork,raw_fish,oak_log,sticks,string,feathers,flint,wool,coal"
-  
   # Stage 2: Infrastructure & Early Trading
   husk: "oak_log,sand,sugar_cane,books,coal,iron_ingot,pumpkin,leather,string,feathers"
   creeper: "oak_log,sand,sugar_cane,paper,coal,iron_ingot,pumpkin,leather,gunpowder"
   pillager: "sand,sugar_cane,paper,books,coal,iron_ingot,leather,string,feathers"
   magma_cube: "oak_log,sand,sugar_cane,books,iron_ingot,pumpkin,leather,magma_cream"
-  
   # Stage 3: Iron Age & Basic Enchanting
   stray: "iron_ingot,gold_ingot,gold_nugget,diamond,leather,paper,emerald,experience_bottle,sand,spider_eye"
   cave_spider: "iron_ingot,gold_ingot,gold_nugget,diamond,paper,emerald,experience_bottle,spider_eye"
   zombified_piglin: "iron_ingot,gold_ingot,gold_nugget,diamond,leather,emerald,experience_bottle,sand"
-  
   # Stage 4: Advanced Magic Systems
   phantom: "lapis_lazuli,diamond,obsidian,blaze_rod,blaze_powder,nether_wart,sugar,slimeball,spider_eye,brown_mushroom,emerald,gold_ingot"
   zoglin: "lapis_lazuli,diamond,obsidian,blaze_rod,blaze_powder,nether_wart,slimeball,emerald,gold_ingot"
   vindicator: "lapis_lazuli,diamond,obsidian,blaze_powder,nether_wart,sugar,spider_eye,brown_mushroom,emerald,gold_ingot"
-  
   # Stage 5: Master Brewing & Advanced Resources
   blaze: "ghast_tear,magma_cream,pufferfish,phantom_membrane,melon_slice,gold_nugget,nether_quartz_ore,clay,cactus,moss_block,sculk"
   enderman: "ghast_tear,magma_cream,phantom_membrane,melon_slice,gold_nugget,nether_quartz_ore,clay,moss_block,sculk,ender_pearl,obsidian"
   witch: "ghast_tear,magma_cream,pufferfish,phantom_membrane,gold_nugget,clay,cactus,moss_block,sculk,lapis_lazuli,redstone,glowstone_dust"
   wither_skeleton: "ghast_tear,magma_cream,pufferfish,phantom_membrane,nether_quartz_ore,clay,cactus,sculk,wither_skeleton_skull"
-  
   # Stage 6: Endgame Mastery
   ravager: "ancient_debris,dragon_breath,ghast_tear,magma_cream,phantom_membrane,gold_nugget,nether_quartz_ore,clay,moss_block,sculk,diamond,emerald"
   evoker: "ancient_debris,dragon_breath,ghast_tear,pufferfish,phantom_membrane,nether_quartz_ore,sculk,totem_of_undying,emerald"
@@ -127,16 +122,39 @@ common_loot:
   ghast: "ancient_debris,dragon_breath,ghast_tear,magma_cream,pufferfish,phantom_membrane,gold_nugget,nether_quartz_ore,sculk,fire_charge"
 
 bonus_loot:
-  zombie: "gravel,egg,golden_apple,cooked_beef,emerald"
-  skeleton: "experience_bottle,bow,diamond,emerald"
-  spider: "villager_spawn_egg,iron_boots,cobweb,diamond,emerald"
-  stray: "tipped_arrow,emerald,book"
-  cave_spider: "experience_bottle,book"
-  creeper: "tnt,emerald"
-  blaze: "blaze_powder,blaze_rod,fire_charge,diamond"
-  phantom: "phantom_membrane,feather"
-  enderman: "totem_of_undying,diamond,ender_chest,shulker_box"
-  witch: "ghast_tear,brewing_stand,cauldron,diamond"
+  # Stage 1: Basic Survival Bonus
+  zombie: "bread,cooked_beef,golden_carrot,emerald,villager_spawn_egg"
+  slime: "honey_bottle,cooked_cod,golden_apple,emerald"
+  spider: "cobweb,fermented_spider_eye,golden_apple,emerald"
+  skeleton: "bone_meal,experience_bottle,book,emerald"
+  
+  # Stage 2: Infrastructure Bonus
+  husk: "iron_ingot,leather_helmet,golden_apple,emerald"
+  creeper: "tnt,gunpowder,iron_ingot,golden_apple,emerald"
+  pillager: "crossbow,iron_ingot,white_banner,emerald"
+  magma_cube: "magma_block,iron_ingot,fire_resistance_potion,emerald"
+  
+  # Stage 3: Iron Age Bonus
+  stray: "ice,packed_ice,arrow,emerald,book"
+  cave_spider: "potion,spider_eye,experience_bottle,emerald,book"
+  zombified_piglin: "gold_ingot,golden_sword,potion,emerald,book"
+  
+  # Stage 4: Advanced Magic Bonus
+  phantom: "elytra,phantom_membrane,potion,emerald,book"
+  zoglin: "leather,cooked_porkchop,potion,emerald,book"
+  vindicator: "iron_axe,emerald_block,emerald,book"
+  
+  # Stage 5: Master Brewing Bonus
+  blaze: "brewing_stand,blaze_rod,potion,splash_potion,book"
+  enderman: "ender_chest,shulker_box,ender_pearl,book"
+  witch: "cauldron,brewing_stand,potion,splash_potion,book"
+  wither_skeleton: "wither_skeleton_skull,stone_sword,potion,book"
+  
+  # Stage 6: Endgame Bonus
+  ravager: "saddle,lead,emerald_block,book"
+  evoker: "totem_of_undying,emerald_block,emerald,book"
+  vex: "totem_of_undying,phantom_membrane,emerald,book"
+  ghast: "ghast_tear,fire_charge,dragon_breath,book"
 
 # Defines the difficulty score for each mob type, used for calculating wave difficulty.
 # The score is a scalar based on health, damage, speed, and special abilities.
