@@ -3,7 +3,6 @@ package city.emerald.bastion;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -247,7 +246,8 @@ public final class Bastion extends JavaPlugin implements Listener {
             return true;
           }
           Player player = (Player) sender;
-          if (villageManager.findAndSelectVillage(player.getWorld())) {
+          org.bukkit.Location villageLocation = villageManager.findVillage(player.getWorld(), player.getWorld().getSpawnLocation());
+          if (villageLocation != null && villageManager.selectVillage(villageLocation)) {
             sender.sendMessage("§aVillage found and selected!");
             
             // Teleport all online players to the village
@@ -271,9 +271,8 @@ public final class Bastion extends JavaPlugin implements Listener {
             return true;
           }
           Player currentPlayer = (Player) sender;
-          Location villageLocation = villageManager.findVillage(currentPlayer.getWorld(), currentPlayer.getLocation());
-          if (villageLocation != null && villageManager.selectVillage(villageLocation)) {
-            sender.sendMessage("§aVillage found and selected at your current location!");
+          if (villageManager.selectVillage(currentPlayer.getLocation())) {
+            sender.sendMessage("§aVillage selected at your current location!");
             
             // Teleport all online players to the village
             for (Player onlinePlayer : getServer().getOnlinePlayers()) {
@@ -283,7 +282,7 @@ public final class Bastion extends JavaPlugin implements Listener {
             // Announce to all players
             getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
           } else {
-            sender.sendMessage("§cNo valid village found at your current location!");
+            sender.sendMessage("§cFailed to select village at your current location!");
           }
           break;
         case "barrier":

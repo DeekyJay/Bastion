@@ -108,7 +108,9 @@ public class VillageManager {
    * Finds and selects a valid village for the game.
    * @param world The world to search in
    * @return true if a valid village was found and selected
+   * @deprecated Use {@link #findVillage(World, Location)} and {@link #selectVillage(Location)} instead
    */
+  @Deprecated
   public boolean findAndSelectVillage(World world) {
     Location villageLocation = findVillage(world, world.getSpawnLocation());
     return villageLocation != null && selectVillage(villageLocation);
