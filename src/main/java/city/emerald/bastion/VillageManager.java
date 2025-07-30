@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.StructureType;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -38,18 +39,19 @@ public class VillageManager {
   }
 
   /**
-   * Finds and selects a valid village for the game.
+   * Finds the nearest village structure from a given search location.
    * @param world The world to search in
-   * @return true if a valid village was found and selected
+   * @param searchCenter The location to search from
+   * @return Location of the village structure, or null if none found
    */
-  public boolean findAndSelectVillage(World world) {
+  public Location findVillage(World world, Location searchCenter) {
     plugin
       .getLogger()
-      .info("Searching for the nearest village structure with at least 4 villagers...");
+      .info("Searching for the nearest village structure from location: " + searchCenter.toVector());
 
     // Use locateNearestStructure to find a village even in unloaded chunks
     Location nearestVillage = world.locateNearestStructure(
-      world.getSpawnLocation(),
+      searchCenter,
       StructureType.VILLAGE,
       5000, // Search within a 5000 block radius
       true // Find in unloaded chunks
@@ -59,26 +61,59 @@ public class VillageManager {
       plugin
         .getLogger()
         .info("Found a village structure at: " + nearestVillage.toVector());
-
-      // We found a village structure, set spawn location
-      Location spawnLoc = findSafeLocation(nearestVillage);
-      this.villageCenter = spawnLoc;
-      world.setSpawnLocation(spawnLoc);      // We need to load the chunk to register villagers
-      spawnLoc.getChunk().load();
-      
-      plugin
-        .getLogger()
-        .info("Village selected and spawn set.");
-
-      return true;
     } else {
       plugin
         .getLogger()
         .warning(
-          "No village structure found within a 5000 block radius of the world spawn."
+          "No village structure found within a 5000 block radius of the search location."
         );
+    }
+
+    return nearestVillage;
+  }
+
+  /**
+   * Selects a village at the given location as the game village.
+   * @param villageLocation The location of the village structure
+   * @return true if the village was successfully selected
+   */
+  public boolean selectVillage(Location villageLocation) {
+    if (villageLocation == null) {
+      plugin.getLogger().warning("Cannot select village: location is null");
       return false;
     }
+
+    World world = villageLocation.getWorld();
+    if (world == null) {
+      plugin.getLogger().warning("Cannot select village: world is null");
+      return false;
+    }
+
+    // Find a safe location for the village center
+    Location spawnLoc = findSafeLocation(villageLocation);
+    this.villageCenter = spawnLoc;
+    world.setSpawnLocation(spawnLoc);
+    
+    // Load the chunk to ensure villagers can be registered
+    spawnLoc.getChunk().load();
+    
+    plugin
+      .getLogger()
+      .info("Village selected and spawn set at: " + spawnLoc.toVector());
+
+    return true;
+  }
+
+  /**
+   * Finds and selects a valid village for the game.
+   * @param world The world to search in
+   * @return true if a valid village was found and selected
+   * @deprecated Use {@link #findVillage(World, Location)} and {@link #selectVillage(Location)} instead
+   */
+  @Deprecated
+  public boolean findAndSelectVillage(World world) {
+    Location villageLocation = findVillage(world, world.getSpawnLocation());
+    return villageLocation != null && selectVillage(villageLocation);
   }
 
   /**
@@ -282,13 +317,125 @@ public class VillageManager {
   private Location findSafeLocation(Location center) {
     World world = center.getWorld();
     Location safe = center.clone();
-
-    // Find highest solid block
-    safe.setY(world.getHighestBlockYAt(safe));
-    // Move up one block to ensure player stands on surface
-    safe.add(0, 1, 0);
-
+    
+    // Search in expanding spiral pattern until safe location found
+    int maxRadius = 50; // Maximum search radius
+    
+    for (int radius = 0; radius <= maxRadius; radius++) {
+        // Check center point first (radius 0)
+        if (radius == 0) {
+            if (isSafeLocation(world, safe)) {
+                return safe;
+            }
+            continue;
+        }
+        
+        // Search in spiral pattern around center
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                // Only check perimeter of current radius to avoid rechecking inner areas
+                if (Math.abs(x) != radius && Math.abs(z) != radius) {
+                    continue;
+                }
+                
+                Location candidate = center.clone().add(x, 0, z);
+                if (isSafeLocation(world, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+    }
+    
+    // Fallback: return original location with basic safety (better than nothing)
+    plugin.getLogger().warning("Could not find safe location within " + maxRadius + " blocks, using fallback");
+    safe.setY(world.getHighestBlockYAt(safe) + 1);
     return safe;
+  }
+
+  /**
+   * Checks if a location is safe for player teleportation.
+   * @param world The world
+   * @param location The location to check (Y coordinate will be adjusted)
+   * @return true if the location is safe
+   */
+  private boolean isSafeLocation(World world, Location location) {
+    // Find the highest solid block at this X,Z coordinate
+    int highestY = world.getHighestBlockYAt(location);
+    
+    // Check if we're at build limit
+    if (highestY >= world.getMaxHeight() - 2) {
+        return false; // Not enough space above
+    }
+    
+    Location groundLevel = location.clone();
+    groundLevel.setY(highestY);
+    
+    // Check the ground block - must be solid and safe
+    Material groundMaterial = groundLevel.getBlock().getType();
+    if (!groundMaterial.isSolid() || isDangerousMaterial(groundMaterial)) {
+        return false;
+    }
+    
+    // Check the two blocks above ground (where player head and body will be)
+    Location airBlock1 = groundLevel.clone().add(0, 1, 0);
+    Location airBlock2 = groundLevel.clone().add(0, 2, 0);
+    
+    Material air1Material = airBlock1.getBlock().getType();
+    Material air2Material = airBlock2.getBlock().getType();
+    
+    // Both blocks must be passable (air, water, tall grass, etc.) and not dangerous
+    if (!isPassableMaterial(air1Material) || isDangerousMaterial(air1Material) ||
+        !isPassableMaterial(air2Material) || isDangerousMaterial(air2Material)) {
+        return false;
+    }
+    
+    // Update the location to be one block above the safe ground
+    location.setY(highestY + 1);
+    return true;
+  }
+
+  /**
+   * Checks if a material is dangerous to players.
+   * @param material The material to check
+   * @return true if the material is dangerous
+   */
+  private boolean isDangerousMaterial(Material material) {
+    switch (material) {
+        case LAVA:
+        case FIRE:
+        case SOUL_FIRE:
+        case MAGMA_BLOCK:
+        case CAMPFIRE:
+        case SOUL_CAMPFIRE:
+        case SWEET_BERRY_BUSH:
+        case CACTUS:
+        case WITHER_ROSE:
+        case POWDER_SNOW:
+            return true;
+        default:
+            return false;
+    }
+  }
+
+  /**
+   * Checks if a material is passable (safe to stand in).
+   * @param material The material to check
+   * @return true if the material is passable
+   */
+  private boolean isPassableMaterial(Material material) {
+    // Air and other non-solid blocks that are safe to stand in
+    return material.isAir() || 
+           material == Material.WATER ||
+           material == Material.TALL_GRASS ||
+           material == Material.SHORT_GRASS ||
+           material == Material.FERN ||
+           material == Material.LARGE_FERN ||
+           material == Material.DEAD_BUSH ||
+           material == Material.SEAGRASS ||
+           material == Material.TALL_SEAGRASS ||
+           material == Material.KELP ||
+           material == Material.KELP_PLANT ||
+           !material.isSolid(); // General fallback for non-solid blocks
   }
 
   /**

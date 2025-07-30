@@ -212,8 +212,11 @@ public final class Bastion extends JavaPlugin implements Listener {
         sender.sendMessage(
           "§e/bastion findvillage §7- Find and select a village"
         );
+        sender.sendMessage(
+          "§e/bastion currentvillage §7- Select the village at current location"
+        );
         sender.sendMessage("§e/bastion barrier §7- Toggle the barrier");
-        sender.sendMessage("§e/bastion start §7- Start a new defense wave");
+        sender.sendMessage("§e/bastion start [wave] §7- Start a new defense wave");
         sender.sendMessage("§e/bastion stop §7- Stop the current game");
         sender.sendMessage("§e/bastion info §7- Show game status");
         if (sender.hasPermission("bastion.admin")) {
@@ -243,7 +246,8 @@ public final class Bastion extends JavaPlugin implements Listener {
             return true;
           }
           Player player = (Player) sender;
-          if (villageManager.findAndSelectVillage(player.getWorld())) {
+          org.bukkit.Location villageLocation = villageManager.findVillage(player.getWorld(), player.getWorld().getSpawnLocation());
+          if (villageLocation != null && villageManager.selectVillage(villageLocation)) {
             sender.sendMessage("§aVillage found and selected!");
             
             // Teleport all online players to the village
@@ -255,6 +259,30 @@ public final class Bastion extends JavaPlugin implements Listener {
             getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
           } else {
             sender.sendMessage("§cNo valid village found nearby!");
+          }
+          break;
+        case "currentvillage":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to select villages!");
+            return true;
+          }
+          if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players!");
+            return true;
+          }
+          Player currentPlayer = (Player) sender;
+          if (villageManager.selectVillage(currentPlayer.getLocation())) {
+            sender.sendMessage("§aVillage selected at your current location!");
+            
+            // Teleport all online players to the village
+            for (Player onlinePlayer : getServer().getOnlinePlayers()) {
+              barrierManager.teleportToVillageCenter(onlinePlayer);
+            }
+            
+            // Announce to all players
+            getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
+          } else {
+            sender.sendMessage("§cFailed to select village at your current location!");
           }
           break;
         case "barrier":
@@ -297,11 +325,35 @@ public final class Bastion extends JavaPlugin implements Listener {
             );
             return true;
           }
+          
+          // Parse optional wave number parameter
+          int startWave = 1; // Default to wave 1
+          if (args.length > 1) {
+            try {
+              startWave = Integer.parseInt(args[1]);
+              if (startWave < 1) {
+                sender.sendMessage("§cWave number must be 1 or greater!");
+                return true;
+              }
+            } catch (NumberFormatException e) {
+              sender.sendMessage("§cInvalid wave number! Please enter a valid number.");
+              return true;
+            }
+          }
+          
           // Ensure villagers are registered before starting the game
           villageManager.registerVillagersInRange(((Player) sender).getWorld());
+          
+          // Set the starting wave number (subtract 1 because it gets incremented)
+          if (startWave > 1) {
+            gameStateManager.setCurrentWaveNumber(startWave - 1);
+            sender.sendMessage("§aStarting new game at wave " + startWave + "...");
+          } else {
+            sender.sendMessage("§aStarting new game...");
+          }
+          
           gameStateManager.startGame();
           statsManager.onGameStart();
-          sender.sendMessage("§aStarting new game...");
           break;
         case "stop":
           if (!sender.hasPermission("bastion.stop")) {

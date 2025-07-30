@@ -27,7 +27,8 @@ public class WorldListener implements Listener {
 
             // Use a short delay to ensure all chunks and entities are fully loaded and ready for the search.
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                if (villageManager.findAndSelectVillage(mainWorld)) {
+                org.bukkit.Location villageLocation = villageManager.findVillage(mainWorld, mainWorld.getSpawnLocation());
+                if (villageLocation != null && villageManager.selectVillage(villageLocation)) {
                     plugin.getLogger().info("Village found and world spawn has been set automatically.");
                 } else {
                     plugin.getLogger().warning("Could not automatically find a suitable village. World spawn not set. An admin may need to run /bastion findvillage manually.");
