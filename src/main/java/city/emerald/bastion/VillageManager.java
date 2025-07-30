@@ -38,18 +38,19 @@ public class VillageManager {
   }
 
   /**
-   * Finds and selects a valid village for the game.
+   * Finds the nearest village structure from a given search location.
    * @param world The world to search in
-   * @return true if a valid village was found and selected
+   * @param searchCenter The location to search from
+   * @return Location of the village structure, or null if none found
    */
-  public boolean findAndSelectVillage(World world) {
+  public Location findVillage(World world, Location searchCenter) {
     plugin
       .getLogger()
-      .info("Searching for the nearest village structure with at least 4 villagers...");
+      .info("Searching for the nearest village structure from location: " + searchCenter.toVector());
 
     // Use locateNearestStructure to find a village even in unloaded chunks
     Location nearestVillage = world.locateNearestStructure(
-      world.getSpawnLocation(),
+      searchCenter,
       StructureType.VILLAGE,
       5000, // Search within a 5000 block radius
       true // Find in unloaded chunks
@@ -59,26 +60,57 @@ public class VillageManager {
       plugin
         .getLogger()
         .info("Found a village structure at: " + nearestVillage.toVector());
-
-      // We found a village structure, set spawn location
-      Location spawnLoc = findSafeLocation(nearestVillage);
-      this.villageCenter = spawnLoc;
-      world.setSpawnLocation(spawnLoc);      // We need to load the chunk to register villagers
-      spawnLoc.getChunk().load();
-      
-      plugin
-        .getLogger()
-        .info("Village selected and spawn set.");
-
-      return true;
     } else {
       plugin
         .getLogger()
         .warning(
-          "No village structure found within a 5000 block radius of the world spawn."
+          "No village structure found within a 5000 block radius of the search location."
         );
+    }
+
+    return nearestVillage;
+  }
+
+  /**
+   * Selects a village at the given location as the game village.
+   * @param villageLocation The location of the village structure
+   * @return true if the village was successfully selected
+   */
+  public boolean selectVillage(Location villageLocation) {
+    if (villageLocation == null) {
+      plugin.getLogger().warning("Cannot select village: location is null");
       return false;
     }
+
+    World world = villageLocation.getWorld();
+    if (world == null) {
+      plugin.getLogger().warning("Cannot select village: world is null");
+      return false;
+    }
+
+    // Find a safe location for the village center
+    Location spawnLoc = findSafeLocation(villageLocation);
+    this.villageCenter = spawnLoc;
+    world.setSpawnLocation(spawnLoc);
+    
+    // Load the chunk to ensure villagers can be registered
+    spawnLoc.getChunk().load();
+    
+    plugin
+      .getLogger()
+      .info("Village selected and spawn set at: " + spawnLoc.toVector());
+
+    return true;
+  }
+
+  /**
+   * Finds and selects a valid village for the game.
+   * @param world The world to search in
+   * @return true if a valid village was found and selected
+   */
+  public boolean findAndSelectVillage(World world) {
+    Location villageLocation = findVillage(world, world.getSpawnLocation());
+    return villageLocation != null && selectVillage(villageLocation);
   }
 
   /**

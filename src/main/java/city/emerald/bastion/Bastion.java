@@ -3,6 +3,7 @@ package city.emerald.bastion;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -212,6 +213,9 @@ public final class Bastion extends JavaPlugin implements Listener {
         sender.sendMessage(
           "§e/bastion findvillage §7- Find and select a village"
         );
+        sender.sendMessage(
+          "§e/bastion currentvillage §7- Select the village at current location"
+        );
         sender.sendMessage("§e/bastion barrier §7- Toggle the barrier");
         sender.sendMessage("§e/bastion start [wave] §7- Start a new defense wave");
         sender.sendMessage("§e/bastion stop §7- Stop the current game");
@@ -255,6 +259,31 @@ public final class Bastion extends JavaPlugin implements Listener {
             getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
           } else {
             sender.sendMessage("§cNo valid village found nearby!");
+          }
+          break;
+        case "currentvillage":
+          if (!sender.hasPermission("bastion.admin")) {
+            sender.sendMessage("§cYou don't have permission to select villages!");
+            return true;
+          }
+          if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players!");
+            return true;
+          }
+          Player currentPlayer = (Player) sender;
+          Location villageLocation = villageManager.findVillage(currentPlayer.getWorld(), currentPlayer.getLocation());
+          if (villageLocation != null && villageManager.selectVillage(villageLocation)) {
+            sender.sendMessage("§aVillage found and selected at your current location!");
+            
+            // Teleport all online players to the village
+            for (Player onlinePlayer : getServer().getOnlinePlayers()) {
+              barrierManager.teleportToVillageCenter(onlinePlayer);
+            }
+            
+            // Announce to all players
+            getServer().broadcastMessage("§aAll players have been teleported to the selected village!");
+          } else {
+            sender.sendMessage("§cNo valid village found at your current location!");
           }
           break;
         case "barrier":
