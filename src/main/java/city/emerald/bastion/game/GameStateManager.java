@@ -99,7 +99,9 @@ public class GameStateManager implements Listener {
         plugin,
         () -> {
           currentState = GameState.ACTIVE;
-          if (waveManager != null) waveManager.startWave(1);
+          // Use currentWaveNumber (defaults to 0, so add 1 for first wave)
+          int startingWave = Math.max(1, currentWaveNumber + 1);
+          if (waveManager != null) waveManager.startWave(startingWave);
           Bukkit.broadcastMessage("§aGame started!");
         },
         200L
