@@ -213,7 +213,7 @@ public final class Bastion extends JavaPlugin implements Listener {
           "§e/bastion findvillage §7- Find and select a village"
         );
         sender.sendMessage("§e/bastion barrier §7- Toggle the barrier");
-        sender.sendMessage("§e/bastion start §7- Start a new defense wave");
+        sender.sendMessage("§e/bastion start [wave] §7- Start a new defense wave");
         sender.sendMessage("§e/bastion stop §7- Stop the current game");
         sender.sendMessage("§e/bastion info §7- Show game status");
         if (sender.hasPermission("bastion.admin")) {
@@ -297,11 +297,35 @@ public final class Bastion extends JavaPlugin implements Listener {
             );
             return true;
           }
+          
+          // Parse optional wave number parameter
+          int startWave = 1; // Default to wave 1
+          if (args.length > 1) {
+            try {
+              startWave = Integer.parseInt(args[1]);
+              if (startWave < 1) {
+                sender.sendMessage("§cWave number must be 1 or greater!");
+                return true;
+              }
+            } catch (NumberFormatException e) {
+              sender.sendMessage("§cInvalid wave number! Please enter a valid number.");
+              return true;
+            }
+          }
+          
           // Ensure villagers are registered before starting the game
           villageManager.registerVillagersInRange(((Player) sender).getWorld());
+          
+          // Set the starting wave number (subtract 1 because it gets incremented)
+          if (startWave > 1) {
+            gameStateManager.setCurrentWaveNumber(startWave - 1);
+            sender.sendMessage("§aStarting new game at wave " + startWave + "...");
+          } else {
+            sender.sendMessage("§aStarting new game...");
+          }
+          
           gameStateManager.startGame();
           statsManager.onGameStart();
-          sender.sendMessage("§aStarting new game...");
           break;
         case "stop":
           if (!sender.hasPermission("bastion.stop")) {
