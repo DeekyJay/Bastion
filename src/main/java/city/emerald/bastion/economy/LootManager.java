@@ -156,11 +156,16 @@ public class LootManager {
         // Determine a random quantity from 1 to maxAmount
         int baseAmount = random.nextInt(entry.maxAmount) + 1;
         
-        // Apply the multiplier and round to the nearest whole number
-        int finalAmount = (int) Math.round(baseAmount * multiplier);
-
-        if (finalAmount > 0) {
-          loot.add(new ItemStack(entry.material, finalAmount));
+        // Check if this is a non-stacking item (max stack size of 1)
+        if (entry.material.getMaxStackSize() == 1) {
+          // Non-stacking item - always give exactly 1, ignore multipliers
+          loot.add(new ItemStack(entry.material, 1));
+        } else {
+          // Stackable item - apply the multiplier and round to the nearest whole number
+          int finalAmount = (int) Math.round(baseAmount * multiplier);
+          if (finalAmount > 0) {
+            loot.add(new ItemStack(entry.material, finalAmount));
+          }
         }
       }
     }
